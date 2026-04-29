@@ -14,6 +14,7 @@ import Events from './pages/Events/Events';
 import Search from './pages/Search/Search';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { FiArrowUp } from 'react-icons/fi';
+import { socketService } from './services/socketService';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { token } = useAppSelector((state) => state.auth);
@@ -33,7 +34,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { token, loading } = useAppSelector((state) => state.auth);
+  const { token, user, loading } = useAppSelector((state) => state.auth);
   const [initializing, setInitializing] = React.useState(true);
   const [showScroll, setShowScroll] = React.useState(false);
 
@@ -46,6 +47,15 @@ const App: React.FC = () => {
     };
     init();
   }, [dispatch, token]);
+
+  React.useEffect(() => {
+    if (user?._id) {
+      socketService.connect(user._id);
+    }
+    return () => {
+      socketService.disconnect();
+    };
+  }, [user?._id]);
 
   React.useEffect(() => {
     const checkScrollTop = () => {

@@ -38,12 +38,34 @@ const createConversation = async (req, res) => {
       const user = await User.findById(req.user.id);
       const recipient = await User.findById(participantId);
       
+      if (!recipient || !recipient.isActive) {
+        return res.status(400).json({ message: 'User account is deactivated' });
+      }
+
       if (user.blockedUsers.includes(participantId) || recipient.blockedUsers.includes(req.user.id)) {
         return res.status(403).json({ message: 'Cannot message this user' });
       }
 
+      // Spam prevention: Check if user started > 5 conversations with non-friends in 24h
+      const isFriend = user.friends.includes(participantId);
+      if (!isFriend) {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const nonFriendConvs = await Conversation.countDocuments({
+          participants: req.user.id,
+          status: 'pending',
+          createdAt: { $gt: twentyFourHoursAgo }
+        });
+
+        if (nonFriendConvs >= 5) {
+          return res.status(429).json({ message: 'Spam protection: You can only message 5 new people per day.' });
+        }
+      }
+
+      const status = isFriend ? 'accepted' : 'pending';
+
       conversation = await Conversation.create({
-        participants: [req.user.id, participantId]
+        participants: [req.user.id, participantId],
+        status
       });
 
       const populatedConversation = await Conversation.findById(conversation._id)

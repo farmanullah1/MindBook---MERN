@@ -13,6 +13,11 @@ const conversationSchema = new mongoose.Schema(
       sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       createdAt: Date
     },
+    status: {
+      type: String,
+      enum: ['accepted', 'pending', 'spam'],
+      default: 'accepted' // Defaulting to accepted for now, logic will handle pending
+    },
     updatedAt: { type: Date, default: Date.now }
   },
   { timestamps: true }
