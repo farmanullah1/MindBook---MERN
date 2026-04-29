@@ -36,16 +36,40 @@ export interface INotification {
 
 export interface IMessage {
   _id: string;
-  sender: string;
-  receiver: string;
+  conversation: string;
+  sender: IUser;
   text: string;
-  read: boolean;
+  mediaUrl: string;
+  mediaType: 'image' | 'video' | 'audio' | 'file' | '';
+  isDeleted: boolean;
+  deletedFor: string[];
+  readBy: string[];
+  repliedTo?: IMessage;
   createdAt: string;
 }
 
 export interface IConversation {
-  user: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
-  latestMessage: IMessage;
+  _id: string;
+  participants: IUser[];
+  isGroup: boolean;
+  groupName?: string;
+  groupIcon?: string;
+  groupAdmin?: string;
+  groupMembers?: IUser[];
+  lastMessage?: {
+    text: string;
+    sender: { _id: string, name: string };
+    createdAt: string;
+  };
+  updatedAt: string;
+}
+
+export interface ChatState {
+  conversations: IConversation[];
+  activeConversation: IConversation | null;
+  messages: IMessage[];
+  loading: boolean;
+  error: string | null;
   unreadCount: number;
 }
 

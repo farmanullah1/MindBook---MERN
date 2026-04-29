@@ -1,100 +1,91 @@
 const Message = require('../models/Message');
-const User = require('../models/User');
-
-const getConversations = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    // Find all unique users the current user has chatted with
-    const messages = await Message.find({
-      $or: [{ sender: userId }, { receiver: userId }]
-    }).sort({ createdAt: -1 });
-
-    const conversationsMap = new Map();
-
-    messages.forEach(msg => {
-      const otherUserId = msg.sender.toString() === userId ? msg.receiver.toString() : msg.sender.toString();
-      if (!conversationsMap.has(otherUserId)) {
-        conversationsMap.set(otherUserId, {
-          latestMessage: msg,
-          unreadCount: msg.receiver.toString() === userId && !msg.read ? 1 : 0
-        });
-      } else {
-        if (msg.receiver.toString() === userId && !msg.read) {
-          const conv = conversationsMap.get(otherUserId);
-          conv.unreadCount += 1;
-        }
-      }
-    });
-
-    const conversationUsers = await User.find({ _id: { $in: Array.from(conversationsMap.keys()) } })
-      .select('name profilePicture');
-
-    const conversations = conversationUsers.map(user => ({
-      user,
-      latestMessage: conversationsMap.get(user._id.toString()).latestMessage,
-      unreadCount: conversationsMap.get(user._id.toString()).unreadCount
-    })).sort((a, b) => new Date(b.latestMessage.createdAt) - new Date(a.latestMessage.createdAt));
-
-    res.json(conversations);
-  } catch (error) {
-    console.error('GetConversations error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-const getMessages = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const otherUserId = req.params.userId;
-
-    const messages = await Message.find({
-      $or: [
-        { sender: userId, receiver: otherUserId },
-        { sender: otherUserId, receiver: userId }
-      ]
-    }).sort({ createdAt: 1 });
-
-    res.json(messages);
-  } catch (error) {
-    console.error('GetMessages error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+const Conversation = require('../models/Conversation');
 
 const sendMessage = async (req, res) => {
   try {
-    const { text } = req.body;
-    if (!text) return res.status(400).json({ message: 'Text is required' });
+    const { conversationId, text, mediaUrl, mediaType, repliedTo } = req.body;
 
     const message = await Message.create({
+      conversation: conversationId,
       sender: req.user.id,
-      receiver: req.params.userId,
-      text
+      text,
+      mediaUrl,
+      mediaType,
+      repliedTo,
+      readBy: [req.user.id]
     });
 
-    res.status(201).json(message);
+    // Update conversation last message
+    await Conversation.findByIdAndUpdate(conversationId, {
+      lastMessage: {
+        text: text || `Sent an ${mediaType}`,
+        sender: req.user.id,
+        createdAt: new Date()
+      },
+      updatedAt: new Date()
+    });
+
+    const populatedMessage = await Message.findById(message._id)
+      .populate('sender', 'name profilePicture')
+      .populate('repliedTo');
+
+    res.status(201).json(populatedMessage);
   } catch (error) {
     console.error('SendMessage error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
-const markMessagesAsRead = async (req, res) => {
+const deleteMessage = async (req, res) => {
   try {
-    await Message.updateMany(
-      { sender: req.params.userId, receiver: req.user.id, read: false },
-      { $set: { read: true } }
-    );
-    res.json({ message: 'Messages marked as read' });
+    const { messageId } = req.params;
+    const message = await Message.findById(messageId);
+
+    if (!message) return res.status(404).json({ message: 'Message not found' });
+
+    await Message.findByIdAndUpdate(messageId, {
+      $addToSet: { deletedFor: req.user.id }
+    });
+
+    res.json({ message: 'Message deleted for you' });
   } catch (error) {
-    console.error('MarkMessagesAsRead error:', error);
+    console.error('DeleteMessage error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteForEveryone = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const message = await Message.findById(messageId);
+
+    if (!message) return res.status(404).json({ message: 'Message not found' });
+    if (message.sender.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Check 10 min limit
+    const diff = (new Date() - message.createdAt) / 1000 / 60;
+    if (diff > 10) {
+      return res.status(400).json({ message: 'Cannot delete message after 10 minutes' });
+    }
+
+    await Message.findByIdAndUpdate(messageId, {
+      isDeleted: true,
+      text: 'This message was deleted',
+      mediaUrl: '',
+      mediaType: ''
+    });
+
+    res.json({ message: 'Message deleted for everyone' });
+  } catch (error) {
+    console.error('DeleteForEveryone error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
 module.exports = {
-  getConversations,
-  getMessages,
   sendMessage,
-  markMessagesAsRead
+  deleteMessage,
+  deleteForEveryone
 };
