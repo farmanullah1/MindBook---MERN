@@ -71,6 +71,7 @@ export interface ChatState {
   loading: boolean;
   error: string | null;
   unreadCount: number;
+  typingUsers: { [conversationId: string]: string[] }; // List of user names typing in each conv
 }
 
 export interface IStory {
@@ -90,12 +91,23 @@ export interface IUserStoryGroup {
 export interface IGroup {
   _id: string;
   name: string;
+  slug: string;
   description: string;
   coverPhoto: string;
-  admin: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
-  members: Pick<IUser, '_id' | 'name' | 'profilePicture'>[];
   privacy: 'public' | 'private';
+  rules: string[];
+  creator: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
+  admins: Pick<IUser, '_id' | 'name' | 'profilePicture'>[];
+  moderators: Pick<IUser, '_id' | 'name' | 'profilePicture'>[];
+  members: Pick<IUser, '_id' | 'name' | 'profilePicture'>[];
+  bannedMembers: string[];
+  joinRequests: { user: Pick<IUser, '_id' | 'name' | 'profilePicture'>; requestedAt: string }[];
+  pinnedPosts: string[];
   createdAt: string;
+  isMember?: boolean;
+  isAdmin?: boolean;
+  isModerator?: boolean;
+  isPending?: boolean;
 }
 
 export interface IEvent {

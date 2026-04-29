@@ -1,8 +1,8 @@
-# Minds Books | Premier Social Space 🌟
+# MindBook | Premier Social Space 🌟
 
-Minds Books is a high-fidelity, fully responsive social media platform. Designed with a vibrant Yellow/Gold aesthetic, it offers a familiar Facebook-like experience but with a unique visual identity and optimized for performance.
+MindBook is a high-fidelity, fully responsive social media platform. Designed with a vibrant Yellow/Gold aesthetic, it offers a familiar Facebook-like experience but with a unique visual identity and optimized for performance.
 
-Built on the **MERN stack**, Minds Books provides a robust set of features for community building, content sharing, and real-time interaction.
+Built on the **MERN stack**, MindBook provides a robust set of features for community building, content sharing, and real-time interaction.
 
 ## ✨ Core Features
 
@@ -47,7 +47,7 @@ Built on the **MERN stack**, Minds Books provides a robust set of features for c
 ---
 
 ## 🎨 Design Philosophy
-Minds Books uses a "Gold Standard" design system. The primary palette revolves around:
+MindBook uses a "Gold Standard" design system. The primary palette revolves around:
 - **Brand Primary:** `#F7B928` (Vibrant Yellow)
 - **Brand Secondary:** `#FFD700`
 - **Surface:** Glassmorphism-inspired card layouts and subtle gradients.

@@ -79,14 +79,14 @@ const Navbar: React.FC = () => {
                 <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="24" fontWeight="900" fontFamily="Arial, sans-serif">M</text>
               </svg>
             </div>
-            <span className="logo-text">Minds Books</span>
+            <span className="logo-text">MindBook</span>
           </Link>
           <div className="navbar-search-container" ref={searchRef}>
             <form className="navbar-search" onSubmit={handleSearch} id="navbar-search">
               <FiSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="Search Minds Books"
+                placeholder="Search MindBook"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 id="search-input"

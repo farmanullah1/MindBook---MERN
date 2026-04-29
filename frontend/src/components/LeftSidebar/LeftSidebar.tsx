@@ -93,7 +93,7 @@ const LeftSidebar: React.FC = () => {
 
         {/* Footer */}
         <footer className="sidebar-footer">
-          <span>Minds Books © 2024</span>
+          <span>MindBook © 2024</span>
         </footer>
       </div>
     </aside>

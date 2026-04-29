@@ -36,10 +36,12 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     if (storyIndex < currentGroup.stories.length - 1) {
       setStoryIndex(prev => prev + 1);
       setProgress(0);
+      startTimeRef.current = undefined;
     } else if (groupIndex < groups.length - 1) {
       setGroupIndex(prev => prev + 1);
       setStoryIndex(0);
       setProgress(0);
+      startTimeRef.current = undefined;
     } else {
       onClose();
     }
@@ -49,16 +51,20 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     if (storyIndex > 0) {
       setStoryIndex(prev => prev - 1);
       setProgress(0);
+      startTimeRef.current = undefined;
     } else if (groupIndex > 0) {
       setGroupIndex(prev => prev - 1);
       setStoryIndex(groups[groupIndex - 1].stories.length - 1);
       setProgress(0);
+      startTimeRef.current = undefined;
     }
   };
 
   const animate = (time: number) => {
     if (isPaused) {
-      startTimeRef.current = time - (progress * STORY_DURATION / 100);
+      if (startTimeRef.current) {
+        startTimeRef.current = time - (progress * STORY_DURATION / 100);
+      }
       requestRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -66,24 +72,41 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     if (!startTimeRef.current) startTimeRef.current = time;
     const elapsed = time - startTimeRef.current;
     
-    const newProgress = Math.min((elapsed / STORY_DURATION) * 100, 100);
+    // If it's a video, we rely on onEnded mostly, but we can still show progress
+    // However, if we want it to be like Instagram, the progress bar should match video duration
+    const duration = currentStory?.video ? (videoRef.current?.duration ? videoRef.current.duration * 1000 : STORY_DURATION) : STORY_DURATION;
+    
+    const newProgress = Math.min((elapsed / duration) * 100, 100);
     setProgress(newProgress);
 
     if (newProgress >= 100) {
-      nextStory();
-      startTimeRef.current = undefined; // Reset for next story
+      if (!currentStory?.video) { // Videos handle their own nextStory via onEnded
+        nextStory();
+      }
     } else {
       requestRef.current = requestAnimationFrame(animate);
     }
   };
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     startTimeRef.current = undefined;
+    setProgress(0);
     requestRef.current = requestAnimationFrame(animate);
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [groupIndex, storyIndex, isPaused]);
+  }, [groupIndex, storyIndex]);
+
+  useEffect(() => {
+    // Separate effect for pause logic to avoid resetting startTimeRef unnecessarily
+    if (isPaused) {
+      if (videoRef.current) videoRef.current.pause();
+    } else {
+      if (videoRef.current) videoRef.current.play().catch(() => {});
+    }
+  }, [isPaused]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -118,9 +141,11 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         } else {
           // Move to next story, or previous if it was the last one
           if (storyIndex < currentGroup.stories.length - 1) {
-             nextStory();
+             setStoryIndex(prev => prev + 1);
+             setProgress(0);
           } else {
-             prevStory();
+             setStoryIndex(prev => prev - 1);
+             setProgress(0);
           }
         }
       } catch (error) {
@@ -174,12 +199,15 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         <div className="story-image-container">
           {currentStory.video ? (
             <video 
+              ref={videoRef}
               src={currentStory.video} 
               className="story-viewer-img" 
               autoPlay 
               muted 
               playsInline 
               onEnded={nextStory}
+              onWaiting={() => setIsPaused(true)}
+              onPlaying={() => setIsPaused(false)}
             />
           ) : (
             <img src={currentStory.image} alt="Story" className="story-viewer-img" />

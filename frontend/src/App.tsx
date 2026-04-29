@@ -8,8 +8,9 @@ import Register from './pages/Register/Register';
 import Home from './pages/Home/Home';
 import Profile from './pages/Profile/Profile';
 import Messages from './pages/Messages/Messages';
-import Groups from './pages/Groups/Groups';
-import GroupDetails from './pages/Groups/GroupDetails';
+import GroupsHome from './pages/Groups/GroupsHome';
+import GroupDiscover from './pages/Groups/GroupDiscover';
+import GroupPage from './pages/Groups/GroupPage';
 import Events from './pages/Events/Events';
 import Search from './pages/Search/Search';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
@@ -86,7 +87,7 @@ const App: React.FC = () => {
           <rect width="40" height="40" rx="10" fill="url(#loadGrad)" />
           <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="22" fontWeight="700" fontFamily="Inter, sans-serif">M</text>
         </svg>
-        <span className="brand-text">Minds Books</span>
+        <span className="brand-text">MindBook</span>
         <div className="spinner" />
       </div>
     );
@@ -140,7 +141,15 @@ const App: React.FC = () => {
           path="/groups"
           element={
             <ProtectedRoute>
-              <Groups />
+              <GroupsHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/discover"
+          element={
+            <ProtectedRoute>
+              <GroupDiscover />
             </ProtectedRoute>
           }
         />
@@ -148,7 +157,15 @@ const App: React.FC = () => {
           path="/groups/:id"
           element={
             <ProtectedRoute>
-              <GroupDetails />
+              <GroupPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/groups/:id/:tab"
+          element={
+            <ProtectedRoute>
+              <GroupPage />
             </ProtectedRoute>
           }
         />

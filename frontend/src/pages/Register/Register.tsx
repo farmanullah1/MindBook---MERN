@@ -62,10 +62,10 @@ const Register: React.FC = () => {
               <circle cx="20" cy="20" r="20" fill="var(--brand-primary)" />
               <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="24" fontWeight="900" fontFamily="Arial, sans-serif">M</text>
             </svg>
-            <h1 className="auth-title">Minds Books</h1>
+            <h1 className="auth-title">MindBook</h1>
           </div>
           <p className="auth-tagline">
-            Connect with friends and the world around you on Minds Books.
+            Connect with friends and the world around you on MindBook.
           </p>
         </div>
 
@@ -164,7 +164,7 @@ const Register: React.FC = () => {
       </div>
 
       <footer className="auth-footer">
-        <p>Minds Books © 2024. A social media experience.</p>
+        <p>MindBook © 2024. A social media experience.</p>
       </footer>
     </div>
   );

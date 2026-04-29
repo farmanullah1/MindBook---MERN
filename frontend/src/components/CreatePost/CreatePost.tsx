@@ -71,7 +71,8 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
 
       const postData: any = { 
         content: feeling ? `${feeling.emoji} is feeling ${feeling.name}. ${content}` : content, 
-        location 
+        location,
+        group: groupId || null
       };
       if (type === 'video') {
         postData.video = uploadedUrl;
@@ -80,7 +81,10 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
       }
 
       if (groupId) {
-        const res = await api.post(`/groups/${groupId}/posts`, postData);
+        // For groups, we might want to just use the api directly to avoid cluttering main feed state
+        // or we can update the slice to handle group posts.
+        // For now, let's just use the API and the callback.
+        const res = await api.post('/posts', postData);
         if (onPostCreated) onPostCreated(res.data);
       } else {
         await dispatch(createPost(postData)).unwrap();

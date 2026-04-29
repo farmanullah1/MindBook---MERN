@@ -137,9 +137,51 @@ const markAsRead = async (req, res) => {
   }
 };
 
+const acceptRequest = async (req, res) => {
+  try {
+    const conversation = await Conversation.findById(req.params.conversationId);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    // Check if user is the recipient
+    if (conversation.participants[1].toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the recipient can accept the request' });
+    }
+
+    conversation.status = 'accepted';
+    await conversation.save();
+
+    res.json({ message: 'Request accepted' });
+  } catch (error) {
+    console.error('AcceptRequest error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteConversation = async (req, res) => {
+  try {
+    const conversation = await Conversation.findById(req.params.conversationId);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    if (!conversation.participants.includes(req.user.id)) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Add to deletedFor list
+    conversation.deletedFor.push(req.user.id);
+    await conversation.save();
+
+    res.json({ message: 'Conversation deleted' });
+  } catch (error) {
+    console.error('DeleteConversation error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getConversations,
   createConversation,
   getMessages,
-  markAsRead
+  markAsRead,
+  acceptRequest,
+  deleteConversation
 };

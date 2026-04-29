@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { store } from '../store/store';
-import { addMessage, updateOnlineStatus } from '../store/slices/chatSlice';
+import { addMessage, updateOnlineStatus, setTypingStatus } from '../store/slices/chatSlice';
 
 class SocketService {
   private socket: Socket | null = null;
@@ -24,11 +24,11 @@ class SocketService {
     });
 
     this.socket.on('user-typing', (data) => {
-      // Could add to state if needed for UI indicator
+      store.dispatch(setTypingStatus({ ...data, isTyping: true }));
     });
 
     this.socket.on('user-stopped-typing', (data) => {
-      // Could add to state
+      store.dispatch(setTypingStatus({ ...data, isTyping: false }));
     });
 
     this.socket.on('disconnect', () => {

@@ -9,10 +9,13 @@ import { getInitials, formatTimeAgo } from '../../utils/helpers';
 import './Post.css';
 
 interface PostProps {
-  post: IPost;
+  post: IPost & { isPinned?: boolean };
+  onPin?: (postId: string) => void;
+  onUnpin?: (postId: string) => void;
+  canManage?: boolean;
 }
 
-const Post: React.FC<PostProps> = ({ post }) => {
+const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const [showComments, setShowComments] = React.useState(false);
@@ -108,6 +111,14 @@ const Post: React.FC<PostProps> = ({ post }) => {
                   </span>
                 </>
               )}
+              {post.isPinned && (
+                <>
+                  <span className="dot">•</span>
+                  <span className="post-pinned-label">
+                    <FiMapPin size={12} /> Pinned
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </Link>
@@ -132,6 +143,16 @@ const Post: React.FC<PostProps> = ({ post }) => {
                       <span>Delete post</span>
                     </button>
                   </>
+                )}
+                {canManage && (
+                  <button className="post-menu-item" onClick={() => {
+                    if (post.isPinned) onUnpin?.(post._id);
+                    else onPin?.(post._id);
+                    setShowMenu(false);
+                  }}>
+                    <FiMapPin size={16} />
+                    <span>{post.isPinned ? 'Unpin post' : 'Pin post'}</span>
+                  </button>
                 )}
               </div>
             )}

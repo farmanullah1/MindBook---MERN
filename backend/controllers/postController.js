@@ -16,6 +16,7 @@ const createPost = async (req, res) => {
       image: image || '',
       video: video || '',
       location: location || '',
+      group: req.body.group || null,
     });
 
     const populatedPost = await Post.findById(post._id)
@@ -38,14 +39,20 @@ const getFeedPosts = async (req, res) => {
     const currentUser = await User.findById(req.user.id);
     const feedUsers = [req.user.id, ...currentUser.friends];
 
-    const posts = await Post.find({ user: { $in: feedUsers } })
+    const posts = await Post.find({ 
+      user: { $in: feedUsers },
+      group: null 
+    })
       .populate('user', 'name profilePicture')
       .populate('comments.user', 'name profilePicture')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Post.countDocuments({ user: { $in: feedUsers } });
+    const total = await Post.countDocuments({ 
+      user: { $in: feedUsers },
+      group: null 
+    });
 
     res.json({
       posts,
@@ -61,7 +68,10 @@ const getFeedPosts = async (req, res) => {
 
 const getUserPosts = async (req, res) => {
   try {
-    const posts = await Post.find({ user: req.params.userId })
+    const posts = await Post.find({ 
+      user: req.params.userId,
+      group: null
+    })
       .populate('user', 'name profilePicture')
       .populate('comments.user', 'name profilePicture')
       .sort({ createdAt: -1 });
@@ -154,7 +164,9 @@ const likePost = async (req, res) => {
 
     if (likeIndex === -1) {
       post.likes.push(req.user.id);
-      await createNotification(post.user, req.user.id, 'like', post._id);
+      if (post.user.toString() !== req.user.id) {
+        await createNotification(post.user, req.user.id, 'like', post._id);
+      }
     } else {
       post.likes.splice(likeIndex, 1);
     }
@@ -193,7 +205,9 @@ const commentOnPost = async (req, res) => {
 
     await post.save();
     
-    await createNotification(post.user, req.user.id, 'comment', post._id, text.substring(0, 50));
+    if (post.user.toString() !== req.user.id) {
+      await createNotification(post.user, req.user.id, 'comment', post._id, text.substring(0, 50));
+    }
 
     const updatedPost = await Post.findById(post._id)
       .populate('user', 'name profilePicture')

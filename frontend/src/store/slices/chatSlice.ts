@@ -9,6 +9,7 @@ const initialState: ChatState = {
   loading: false,
   error: null,
   unreadCount: 0,
+  typingUsers: {},
 };
 
 export const fetchConversations = createAsyncThunk('chat/fetchConversations', async () => {
@@ -24,6 +25,11 @@ export const fetchMessages = createAsyncThunk('chat/fetchMessages', async (conve
 export const sendMessage = createAsyncThunk('chat/sendMessage', async (data: any) => {
   const response = await api.post(`/conversations/${data.conversationId}/messages`, data);
   return response.data;
+});
+
+export const acceptRequest = createAsyncThunk('chat/acceptRequest', async (conversationId: string) => {
+  const response = await api.put(`/conversations/${conversationId}/accept`);
+  return { conversationId, ...response.data };
 });
 
 const chatSlice = createSlice({
@@ -59,6 +65,20 @@ const chatSlice = createSlice({
           }
         });
       });
+    },
+    setTypingStatus: (state, action: PayloadAction<{conversationId: string, userName: string, isTyping: boolean}>) => {
+      const { conversationId, userName, isTyping } = action.payload;
+      if (!state.typingUsers[conversationId]) {
+        state.typingUsers[conversationId] = [];
+      }
+
+      if (isTyping) {
+        if (!state.typingUsers[conversationId].includes(userName)) {
+          state.typingUsers[conversationId].push(userName);
+        }
+      } else {
+        state.typingUsers[conversationId] = state.typingUsers[conversationId].filter(name => name !== userName);
+      }
     }
   },
   extraReducers: (builder) => {
@@ -74,13 +94,21 @@ const chatSlice = createSlice({
         state.messages = action.payload;
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
-        // Handled via socket usually, but for fallback/optimistic:
         if (!state.messages.find(m => m._id === action.payload._id)) {
           state.messages.push(action.payload);
+        }
+      })
+      .addCase(acceptRequest.fulfilled, (state, action) => {
+        const conv = state.conversations.find(c => c._id === action.payload.conversationId);
+        if (conv) {
+          conv.status = 'accepted';
+        }
+        if (state.activeConversation?._id === action.payload.conversationId) {
+          state.activeConversation.status = 'accepted';
         }
       });
   },
 });
 
-export const { setActiveConversation, addMessage, updateOnlineStatus } = chatSlice.actions;
+export const { setActiveConversation, addMessage, updateOnlineStatus, setTypingStatus } = chatSlice.actions;
 export default chatSlice.reducer;

@@ -15,7 +15,8 @@ interface ChatWindowProps {
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) => {
   const dispatch = useAppDispatch();
-  const { messages } = useAppSelector(state => state.chat);
+  const { messages, typingUsers } = useAppSelector(state => state.chat);
+  const currentTyping = typingUsers[conversation._id] || [];
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -30,7 +31,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, currentTyping]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +75,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
       socketService.emitTyping({
         conversationId: conversation._id,
         userId: currentUser._id,
+        userName: currentUser.name,
         recipients,
         isTyping: true
       });
@@ -86,10 +88,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
       socketService.emitTyping({
         conversationId: conversation._id,
         userId: currentUser._id,
+        userName: currentUser.name,
         recipients,
         isTyping: false
       });
     }, 3000);
+  };
+
+  const isRequest = conversation.status === 'pending' && conversation.participants[1]._id === currentUser._id;
+  const iSentRequest = conversation.status === 'pending' && conversation.participants[0]._id === currentUser._id;
+
+  const handleAccept = () => {
+    dispatch(acceptRequest(conversation._id));
   };
 
   return (
@@ -130,25 +140,52 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
             showAvatar={idx === 0 || messages[idx-1].sender._id !== msg.sender._id}
           />
         ))}
+        {currentTyping.length > 0 && (
+          <div className="typing-indicator">
+            <div className="dot" />
+            <div className="dot" />
+            <div className="dot" />
+            <span>{currentTyping.join(', ')} is typing...</span>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      <form className="chat-input-area" onSubmit={handleSend}>
-        <div className="input-actions">
-          <button type="button" className="icon-btn"><FiSmile size={20} /></button>
-          <button type="button" className="icon-btn"><FiImage size={20} /></button>
-          <button type="button" className="icon-btn"><FiPaperclip size={20} /></button>
+      {isRequest ? (
+        <div className="message-request-actions">
+          <div className="request-info-box">
+            <p>Do you want to let {otherUser?.name} message you?</p>
+            <span>They won't know you've seen their message until you accept.</span>
+          </div>
+          <div className="request-buttons">
+            <button className="accept-btn" onClick={handleAccept}>Accept</button>
+            <button className="delete-btn">Delete</button>
+            <button className="block-btn">Block</button>
+          </div>
         </div>
-        <input 
-          type="text" 
-          placeholder="Aa" 
-          value={inputText}
-          onChange={handleTyping}
-        />
-        <button type="submit" className="send-btn" disabled={!inputText.trim()}>
-          <FiSend size={20} />
-        </button>
-      </form>
+      ) : iSentRequest ? (
+        <div className="sent-request-notice">
+          <p>Message Request Sent</p>
+          <span>Waiting for {otherUser?.name} to accept your request.</span>
+        </div>
+      ) : (
+        <form className="chat-input-area" onSubmit={handleSend}>
+          <div className="input-actions">
+            <button type="button" className="icon-btn"><FiSmile size={20} /></button>
+            <button type="button" className="icon-btn"><FiImage size={20} /></button>
+            <button type="button" className="icon-btn"><FiPaperclip size={20} /></button>
+          </div>
+          <input 
+            type="text" 
+            placeholder="Aa" 
+            value={inputText}
+            onChange={handleTyping}
+          />
+          <button type="submit" className="send-btn" disabled={!inputText.trim()}>
+            <FiSend size={20} />
+          </button>
+        </form>
+      )}
     </div>
   );
 };

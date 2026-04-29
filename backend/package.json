@@ -1,7 +1,7 @@
 {
-  "name": "minds-books-backend",
+  "name": "mindbook-backend",
   "version": "1.0.0",
-  "description": "Minds Books - Social Media Backend API",
+  "description": "MindBook - Social Media Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

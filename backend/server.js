@@ -11,7 +11,6 @@ const userRoutes = require('./routes/users');
 const postRoutes = require('./routes/posts');
 const uploadRoutes = require('./routes/upload');
 const notificationRoutes = require('./routes/notifications');
-const messageRoutes = require('./routes/messages');
 const storyRoutes = require('./routes/stories');
 const groupRoutes = require('./routes/groups');
 const eventRoutes = require('./routes/events');
@@ -50,15 +49,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('typing-start', (data) => {
-    // data: { conversationId, userId, recipients }
+    // data: { conversationId, userId, userName, recipients }
     data.recipients.forEach(recipientId => {
-      io.to(recipientId).emit('user-typing', { conversationId: data.conversationId, userId: data.userId });
+      io.to(recipientId).emit('user-typing', data);
     });
   });
 
   socket.on('typing-stop', (data) => {
     data.recipients.forEach(recipientId => {
-      io.to(recipientId).emit('user-stopped-typing', { conversationId: data.conversationId, userId: data.userId });
+      io.to(recipientId).emit('user-stopped-typing', data);
     });
   });
 
@@ -86,7 +85,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/messages', messageRoutes);
 app.use('/api/stories', storyRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/events', eventRoutes);
@@ -94,7 +92,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/conversations', conversationRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Minds Books API is running' });
+  res.json({ status: 'OK', message: 'MindBook API is running' });
 });
 
 app.use((req, res) => {
@@ -112,7 +110,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`\n🚀 Minds Books API Server running on port ${PORT}`);
+  console.log(`\n🚀 MindBook API Server running on port ${PORT}`);
   console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}\n`);
 });
