@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiX, FiImage } from 'react-icons/fi';
-import api, { uploadImage } from '../../services/api';
+import api, { uploadFile } from '../../services/api';
 import './CreateGroupModal.css';
 
 interface CreateGroupModalProps {
@@ -27,7 +27,8 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onSuccess 
     try {
       let coverPhotoUrl = '';
       if (coverPhoto) {
-        coverPhotoUrl = await uploadImage(coverPhoto);
+        const res = await uploadFile(coverPhoto);
+        coverPhotoUrl = res.url;
       }
 
       await api.post('/groups', {

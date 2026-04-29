@@ -170,9 +170,20 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
           </button>
         </div>
 
-        {/* Image */}
+        {/* Content */}
         <div className="story-image-container">
-          <img src={currentStory.image} alt="Story" className="story-viewer-img" />
+          {currentStory.video ? (
+            <video 
+              src={currentStory.video} 
+              className="story-viewer-img" 
+              autoPlay 
+              muted 
+              playsInline 
+              onEnded={nextStory}
+            />
+          ) : (
+            <img src={currentStory.image} alt="Story" className="story-viewer-img" />
+          )}
           
           {/* Navigation Overlay */}
           <div 

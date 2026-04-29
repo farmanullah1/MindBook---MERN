@@ -78,6 +78,20 @@ const userSchema = new mongoose.Schema(
         ref: 'Post',
       },
     ],
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    lastActive: {
+      type: Date,
+      default: Date.now,
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -160,10 +160,15 @@ const Post: React.FC<PostProps> = ({ post }) => {
         )
       )}
 
-      {/* Post Image */}
+      {/* Post Media */}
       {post.image && (
         <div className="post-image">
           <img src={post.image} alt="Post" loading="lazy" />
+        </div>
+      )}
+      {post.video && (
+        <div className="post-video">
+          <video src={post.video} controls />
         </div>
       )}
 

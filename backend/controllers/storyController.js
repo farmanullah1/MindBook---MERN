@@ -3,14 +3,15 @@ const User = require('../models/User');
 
 const createStory = async (req, res) => {
   try {
-    const { image } = req.body;
-    if (!image) {
-      return res.status(400).json({ message: 'Image is required for a story' });
+    const { image, video } = req.body;
+    if (!image && !video) {
+      return res.status(400).json({ message: 'Image or video is required for a story' });
     }
 
     const story = await Story.create({
       user: req.user.id,
-      image,
+      image: image || '',
+      video: video || '',
     });
 
     const populatedStory = await Story.findById(story._id).populate('user', 'name profilePicture');

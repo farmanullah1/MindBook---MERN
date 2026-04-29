@@ -11,6 +11,7 @@ import Messages from './pages/Messages/Messages';
 import Groups from './pages/Groups/Groups';
 import GroupDetails from './pages/Groups/GroupDetails';
 import Events from './pages/Events/Events';
+import Search from './pages/Search/Search';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import { FiArrowUp } from 'react-icons/fi';
 
@@ -146,6 +147,14 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <Events />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <Search />
             </ProtectedRoute>
           }
         />

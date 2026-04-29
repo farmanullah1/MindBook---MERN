@@ -104,6 +104,28 @@
   padding: var(--space-2);
   margin-top: 8px;
   z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.search-group-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: var(--space-2) var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.search-group {
+  border-bottom: 1px solid var(--divider-color);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.search-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 
 /* Center */

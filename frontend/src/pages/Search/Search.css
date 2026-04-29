@@ -1,0 +1,118 @@
+.search-results-container {
+  padding: var(--space-4);
+}
+
+.search-header {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.search-header h2 {
+  margin-bottom: var(--space-3);
+  font-size: 1.5rem;
+}
+
+.search-tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-top: 1px solid var(--divider-color);
+  padding-top: var(--space-3);
+}
+
+.search-tab {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--comment-background);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.search-tab:hover {
+  background: var(--divider-color);
+}
+
+.search-tab.active {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.search-section {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.section-title {
+  margin-bottom: var(--space-3);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.user-results, .group-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.user-result-item, .group-result-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--transition-fast);
+}
+
+.user-result-item:hover, .group-result-item:hover {
+  background: var(--hover-overlay);
+}
+
+.user-avatar, .group-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.user-avatar img, .group-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-info, .group-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.user-name, .group-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.user-sub, .group-sub {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.search-empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.group-icon {
+  width: 100%;
+  height: 100%;
+  background: var(--brand-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}

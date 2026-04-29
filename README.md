@@ -6,9 +6,10 @@ Built on the **MERN stack**, Minds Books provides a robust set of features for c
 
 ## ✨ Core Features
 
-- **24-Hour Stories:** Disappearing photo stories with full-screen viewer, auto-advancement, and management.
+- **24-Hour Stories:** Disappearing photo/video stories with full-screen viewer, auto-advancement, and management.
 - **Infinite News Feed:** True infinite scrolling using `react-intersection-observer` for seamless content consumption.
-- **Rich Post Creation:** Create posts with text, high-quality image uploads, and location tagging.
+- **Multi-Media Posts:** Create posts with text, high-quality image/video uploads, and location tagging.
+- **Global Search:** Consolidated search across users, posts, and groups with real-time suggestions.
 - **URL Auto-Linking:** Automatically detects and converts URLs in posts into clickable links.
 - **Engagement System:** Real-time feel notifications for likes, comments, and friend activities.
 - **Friend Ecosystem:** Full friend request lifecycle (Send, Accept, Decline, Cancel) and mutual friend discovery.

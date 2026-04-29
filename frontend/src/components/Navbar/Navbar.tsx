@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [searchResults, setSearchResults] = React.useState<IUser[]>([]);
+  const [searchResults, setSearchResults] = React.useState<{users: IUser[], groups: any[], posts: any[]}>({users: [], groups: [], posts: []});
   const [isSearching, setIsSearching] = React.useState(false);
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
         setShowProfileMenu(false);
       }
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchResults([]);
+        setSearchResults({users: [], groups: [], posts: []});
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -39,14 +39,14 @@ const Navbar: React.FC = () => {
       if (searchQuery.trim()) {
         setIsSearching(true);
         try {
-          const res = await api.get(`/users/search?q=${searchQuery}`);
+          const res = await api.get(`/search?q=${searchQuery}`);
           setSearchResults(res.data);
         } catch (error) {
           console.error(error);
         }
         setIsSearching(false);
       } else {
-        setSearchResults([]);
+        setSearchResults({users: [], groups: [], posts: []});
       }
     }, 500);
 
@@ -61,6 +61,8 @@ const Navbar: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      navigate(`/search?q=${searchQuery}`);
+      setSearchResults({users: [], groups: [], posts: []});
       setSearchQuery('');
     }
   };
@@ -90,25 +92,46 @@ const Navbar: React.FC = () => {
                 id="search-input"
               />
             </form>
-            {searchResults.length > 0 && (
+            {(searchResults.users.length > 0 || searchResults.groups.length > 0 || searchResults.posts.length > 0) && (
               <div className="search-dropdown dropdown-menu">
-                {searchResults.map(resultUser => (
-                  <Link 
-                    key={resultUser._id} 
-                    to={`/profile/${resultUser._id}`} 
-                    className="dropdown-item"
-                    onClick={() => { setSearchResults([]); setSearchQuery(''); }}
-                  >
-                    <div className="dropdown-avatar">
-                      {resultUser.profilePicture ? (
-                        <img src={resultUser.profilePicture} alt={resultUser.name} />
-                      ) : (
-                        <div className="avatar-initials">{getInitials(resultUser.name)}</div>
-                      )}
-                    </div>
-                    <span>{resultUser.name}</span>
-                  </Link>
-                ))}
+                {searchResults.users.length > 0 && (
+                  <div className="search-group">
+                    <div className="search-group-title">People</div>
+                    {searchResults.users.map(resultUser => (
+                      <Link 
+                        key={resultUser._id} 
+                        to={`/profile/${resultUser._id}`} 
+                        className="dropdown-item"
+                        onClick={() => { setSearchResults({users: [], groups: [], posts: []}); setSearchQuery(''); }}
+                      >
+                        <div className="dropdown-avatar">
+                          {resultUser.profilePicture ? (
+                            <img src={resultUser.profilePicture} alt={resultUser.name} />
+                          ) : (
+                            <div className="avatar-initials">{getInitials(resultUser.name)}</div>
+                          )}
+                        </div>
+                        <span>{resultUser.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {searchResults.groups.length > 0 && (
+                  <div className="search-group">
+                    <div className="search-group-title">Groups</div>
+                    {searchResults.groups.map(group => (
+                      <Link 
+                        key={group._id} 
+                        to={`/groups/${group._id}`} 
+                        className="dropdown-item"
+                        onClick={() => { setSearchResults({users: [], groups: [], posts: []}); setSearchQuery(''); }}
+                      >
+                        <div className="dropdown-icon">👥</div>
+                        <span>{group.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

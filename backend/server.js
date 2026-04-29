@@ -15,6 +15,7 @@ const messageRoutes = require('./routes/messages');
 const storyRoutes = require('./routes/stories');
 const groupRoutes = require('./routes/groups');
 const eventRoutes = require('./routes/events');
+const searchRoutes = require('./routes/search');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/stories', storyRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/search', searchRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Minds Books API is running' });

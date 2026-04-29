@@ -2,10 +2,19 @@ import React from 'react';
 import { FiImage, FiSmile, FiVideo, FiMapPin, FiX } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createPost } from '../../store/slices/postsSlice';
-import { uploadImage } from '../../services/api';
-import api from '../../services/api';
+import api, { uploadFile } from '../../services/api';
 import { getInitials } from '../../utils/helpers';
 import './CreatePost.css';
+
+const FEELINGS = [
+  { name: 'Happy', emoji: '😊' },
+  { name: 'Loved', emoji: '🥰' },
+  { name: 'Sad', emoji: '😢' },
+  { name: 'Excited', emoji: '🤩' },
+  { name: 'Angry', emoji: '😠' },
+  { name: 'Thinking', emoji: '🤔' },
+  { name: 'Relaxed', emoji: '😌' },
+];
 
 interface CreatePostProps {
   groupId?: string;
@@ -19,23 +28,28 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
   const [content, setContent] = React.useState('');
   const [location, setLocation] = React.useState('');
   const [showLocationInput, setShowLocationInput] = React.useState(false);
-  const [imageFile, setImageFile] = React.useState<File | null>(null);
-  const [imagePreview, setImagePreview] = React.useState('');
+  const [mediaFile, setMediaFile] = React.useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = React.useState('');
+  const [mediaType, setMediaType] = React.useState<'image' | 'video' | ''>('');
+  const [feeling, setFeeling] = React.useState<{name: string, emoji: string} | null>(null);
+  const [showFeelingPicker, setShowFeelingPicker] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      setMediaFile(file);
+      setMediaPreview(URL.createObjectURL(file));
+      setMediaType(file.type.startsWith('video') ? 'video' : 'image');
     }
   };
 
-  const removeImage = () => {
-    setImageFile(null);
-    setImagePreview('');
+  const removeMedia = () => {
+    setMediaFile(null);
+    setMediaPreview('');
+    setMediaType('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -43,16 +57,27 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() && !imageFile) return;
+    if (!content.trim() && !mediaFile && !feeling) return;
 
     setLoading(true);
     try {
-      let uploadedImageUrl = '';
-      if (imageFile) {
-        uploadedImageUrl = await uploadImage(imageFile);
+      let uploadedUrl = '';
+      let type = '';
+      if (mediaFile) {
+        const res = await uploadFile(mediaFile);
+        uploadedUrl = res.url;
+        type = res.type;
       }
 
-      const postData = { content, image: uploadedImageUrl, location };
+      const postData: any = { 
+        content: feeling ? `${feeling.emoji} is feeling ${feeling.name}. ${content}` : content, 
+        location 
+      };
+      if (type === 'video') {
+        postData.video = uploadedUrl;
+      } else if (type === 'image') {
+        postData.image = uploadedUrl;
+      }
 
       if (groupId) {
         const res = await api.post(`/groups/${groupId}/posts`, postData);
@@ -62,8 +87,10 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
       }
       setContent('');
       setLocation('');
+      setFeeling(null);
       setShowLocationInput(false);
-      removeImage();
+      setShowFeelingPicker(false);
+      removeMedia();
     } catch (error) {
       console.error('Failed to create post:', error);
     } finally {
@@ -90,14 +117,22 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
               <div className="avatar">{user ? getInitials(user.name) : '?'}</div>
             )}
           </div>
-          <textarea
-            ref={textareaRef}
-            className="create-post-input"
-            placeholder={`What's on your mind, ${user?.name?.split(' ')[0] || 'User'}?`}
-            value={content}
-            onChange={handleTextareaChange}
-            rows={1}
-          />
+          <div className="create-post-input-container">
+            {feeling && (
+              <div className="selected-feeling">
+                {feeling.emoji} feeling {feeling.name}
+                <button type="button" onClick={() => setFeeling(null)}><FiX size={12} /></button>
+              </div>
+            )}
+            <textarea
+              ref={textareaRef}
+              className="create-post-input"
+              placeholder={`What's on your mind, ${user?.name?.split(' ')[0] || 'User'}?`}
+              value={content}
+              onChange={handleTextareaChange}
+              rows={1}
+            />
+          </div>
         </div>
 
         {showLocationInput && (
@@ -117,13 +152,17 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
         )}
 
         <div className="create-post-media">
-          {imagePreview && (
+          {mediaPreview && (
             <div className="create-post-image-preview">
-              <img src={imagePreview} alt="Preview" />
+              {mediaType === 'video' ? (
+                <video src={mediaPreview} controls />
+              ) : (
+                <img src={mediaPreview} alt="Preview" />
+              )}
               <button 
                 type="button" 
                 className="remove-image-btn"
-                onClick={removeImage}
+                onClick={removeMedia}
               >
                 <FiX />
               </button>
@@ -132,12 +171,28 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
           
           <input 
             type="file" 
-            accept="image/*" 
+            accept="image/*,video/*" 
             ref={fileInputRef} 
-            onChange={handleImageChange} 
+            onChange={handleMediaChange} 
             style={{ display: 'none' }} 
           />
         </div>
+
+        {showFeelingPicker && (
+          <div className="feeling-picker">
+            {FEELINGS.map((f) => (
+              <button 
+                key={f.name} 
+                type="button" 
+                className="feeling-item"
+                onClick={() => { setFeeling(f); setShowFeelingPicker(false); }}
+              >
+                <span className="feeling-emoji">{f.emoji}</span>
+                <span className="feeling-name">{f.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
         
         <div className="create-post-footer">
           <div className="create-post-actions">
@@ -147,13 +202,13 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
               onClick={() => fileInputRef.current?.click()}
             >
               <FiImage size={20} className="action-icon text-success" />
-              <span>Photo</span>
+              <span>Photo/Video</span>
             </button>
             <button type="button" className="action-btn" onClick={() => setShowLocationInput(!showLocationInput)}>
               <FiMapPin size={20} className="action-icon text-danger" />
               <span>Location</span>
             </button>
-            <button type="button" className="action-btn">
+            <button type="button" className="action-btn" onClick={() => setShowFeelingPicker(!showFeelingPicker)}>
               <FiSmile size={20} className="action-icon text-warning" />
               <span>Feeling</span>
             </button>
@@ -162,7 +217,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
           <button 
             type="submit" 
             className="btn btn-primary"
-            disabled={(!content.trim() && !imageFile) || loading}
+            disabled={(!content.trim() && !mediaFile && !feeling) || loading}
           >
             {loading ? 'Posting...' : 'Post'}
           </button>

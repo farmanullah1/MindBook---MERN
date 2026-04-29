@@ -40,6 +40,32 @@
   color: var(--text-secondary);
 }
 
+.create-post-input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.selected-feeling {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.selected-feeling button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
 .location-input-wrapper {
   display: flex;
   align-items: center;
@@ -84,7 +110,8 @@
   max-height: 300px;
 }
 
-.create-post-image-preview img {
+.create-post-image-preview img,
+.create-post-image-preview video {
   width: 100%;
   max-height: 300px;
   object-fit: cover;
@@ -105,6 +132,43 @@
   justify-content: center;
   cursor: pointer;
   font-size: 18px;
+}
+
+.feeling-picker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--comment-background);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--divider-color);
+}
+
+.feeling-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--card-background);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.feeling-item:hover {
+  background: var(--hover-overlay);
+  border-color: var(--brand-primary-light);
+}
+
+.feeling-emoji {
+  font-size: 1.5rem;
+}
+
+.feeling-name {
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .create-post-footer {

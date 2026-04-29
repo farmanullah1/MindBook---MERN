@@ -29,15 +29,15 @@ api.interceptors.response.use(
   }
 );
 
-export const uploadImage = async (file: File) => {
+export const uploadFile = async (file: File) => {
   const formData = new FormData();
-  formData.append('image', file);
+  formData.append('media', file);
   const response = await api.post('/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data.imageUrl;
+  return response.data; // returns { url, type }
 };
 
 export default api;

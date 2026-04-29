@@ -3,7 +3,7 @@ import { FiCalendar, FiMapPin, FiUsers, FiPlus, FiX } from 'react-icons/fi';
 import Navbar from '../../components/Navbar/Navbar';
 import LeftSidebar from '../../components/LeftSidebar/LeftSidebar';
 import RightSidebar from '../../components/RightSidebar/RightSidebar';
-import api from '../../services/api';
+import api, { uploadFile } from '../../services/api';
 import { useAppSelector } from '../../store/hooks';
 import { IEvent } from '../../types';
 import { getInitials } from '../../utils/helpers';
@@ -14,7 +14,8 @@ const Events: React.FC = () => {
   const [events, setEvents] = useState<IEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newEvent, setNewEvent] = useState({ title: '', description: '', date: '', location: '' });
+  const [newEvent, setNewEvent] = useState({ title: '', description: '', date: '', location: '', coverImage: '' });
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const fetchEvents = async () => {
     try {
@@ -34,9 +35,15 @@ const Events: React.FC = () => {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/events', newEvent);
+      let coverImage = '';
+      if (imageFile) {
+        const res = await uploadFile(imageFile);
+        coverImage = res.url;
+      }
+      await api.post('/events', { ...newEvent, coverImage });
       setShowCreateModal(false);
-      setNewEvent({ title: '', description: '', date: '', location: '' });
+      setNewEvent({ title: '', description: '', date: '', location: '', coverImage: '' });
+      setImageFile(null);
       fetchEvents();
     } catch (error) {
       console.error('Failed to create event:', error);
@@ -224,6 +231,14 @@ const Events: React.FC = () => {
                   value={newEvent.description}
                   onChange={e => setNewEvent({...newEvent, description: e.target.value})}
                 ></textarea>
+              </div>
+              <div className="event-form-group">
+                <label>Cover Image</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={e => setImageFile(e.target.files ? e.target.files[0] : null)}
+                />
               </div>
               <div className="event-modal-actions">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>

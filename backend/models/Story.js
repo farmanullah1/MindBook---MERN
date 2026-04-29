@@ -9,7 +9,11 @@ const storySchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      required: true,
+      default: '',
+    },
+    video: {
+      type: String,
+      default: '',
     },
     createdAt: {
       type: Date,

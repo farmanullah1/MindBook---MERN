@@ -7,7 +7,7 @@ import { updateUserInState } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import { IUser } from '../../types';
 import { getInitials, formatDate } from '../../utils/helpers';
-import { uploadImage } from '../../services/api';
+import { uploadFile } from '../../services/api';
 import Navbar from '../../components/Navbar/Navbar';
 import CreatePost from '../../components/CreatePost/CreatePost';
 import Post from '../../components/Post/Post';
@@ -108,7 +108,8 @@ const Profile: React.FC = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'coverPicture' | 'profilePicture') => {
     if (e.target.files && e.target.files[0]) {
       try {
-        const url = await uploadImage(e.target.files[0]);
+        const res = await uploadFile(e.target.files[0]);
+        const url = res.url;
         await api.put(`/users/profile`, { [type]: url });
         setProfileUser((prev) => prev ? { ...prev, [type]: url } : prev);
         dispatch(updateUserInState({ [type]: url }));

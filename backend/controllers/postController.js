@@ -4,16 +4,17 @@ const { createNotification } = require('./notificationController');
 
 const createPost = async (req, res) => {
   try {
-    const { content, image, location } = req.body;
+    const { content, image, video, location } = req.body;
 
-    if (!content && !image) {
-      return res.status(400).json({ message: 'Post must have content or an image' });
+    if (!content && !image && !video) {
+      return res.status(400).json({ message: 'Post must have content, an image, or a video' });
     }
 
     const post = await Post.create({
       user: req.user.id,
       content: content || '',
       image: image || '',
+      video: video || '',
       location: location || '',
     });
 
@@ -101,9 +102,10 @@ const updatePost = async (req, res) => {
       return res.status(403).json({ message: 'You can only edit your own posts' });
     }
 
-    const { content, image, location } = req.body;
+    const { content, image, video, location } = req.body;
     if (content !== undefined) post.content = content;
     if (image !== undefined) post.image = image;
+    if (video !== undefined) post.video = video;
     if (location !== undefined) post.location = location;
 
     await post.save();

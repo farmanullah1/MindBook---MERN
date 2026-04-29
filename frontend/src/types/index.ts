@@ -52,7 +52,8 @@ export interface IConversation {
 export interface IStory {
   _id: string;
   user: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
-  image: string;
+  image?: string;
+  video?: string;
   createdAt: string;
 }
 
@@ -91,6 +92,8 @@ export interface IPost {
   group?: IGroup;
   content: string;
   image: string;
+  video?: string;
+  location?: string;
   likes: string[];
   comments: IComment[];
   createdAt: string;

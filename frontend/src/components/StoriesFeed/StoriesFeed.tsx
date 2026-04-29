@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useAppSelector } from '../../store/hooks';
-import api, { uploadImage } from '../../services/api';
+import api, { uploadFile } from '../../services/api';
 import { IUserStoryGroup } from '../../types';
 import { getInitials } from '../../utils/helpers';
 import StoryViewer from './StoryViewer';
@@ -35,8 +35,14 @@ const StoriesFeed: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       setLoading(true);
       try {
-        const imageUrl = await uploadImage(e.target.files[0]);
-        await api.post('/stories', { image: imageUrl });
+        const res = await uploadFile(e.target.files[0]);
+        const storyData: any = {};
+        if (res.type === 'video') {
+          storyData.video = res.url;
+        } else {
+          storyData.image = res.url;
+        }
+        await api.post('/stories', storyData);
         fetchStories(); // Refresh stories
       } catch (error) {
         console.error('Failed to create story', error);
@@ -58,7 +64,11 @@ const StoriesFeed: React.FC = () => {
         {/* Create Story / Current User Story Card */}
         {currentUserGroup ? (
           <div className="story-card friend-story-card" onClick={() => setViewerGroupIndex(groupedStories.findIndex(g => g.user._id === user?._id))}>
-              <img src={currentUserGroup.stories[currentUserGroup.stories.length - 1].image} alt="Your Story" className="story-bg-img" />
+              {currentUserGroup.stories[currentUserGroup.stories.length - 1].video ? (
+                <video src={currentUserGroup.stories[currentUserGroup.stories.length - 1].video} className="story-bg-img" muted />
+              ) : (
+                <img src={currentUserGroup.stories[currentUserGroup.stories.length - 1].image} alt="Your Story" className="story-bg-img" />
+              )}
               <div className="story-overlay">
                 <div className="story-avatar">
                   {user?.profilePicture ? (
@@ -94,17 +104,21 @@ const StoriesFeed: React.FC = () => {
           hidden 
           ref={fileInputRef} 
           onChange={handleFileChange} 
-          accept="image/*" 
+          accept="image/*,video/*" 
           disabled={loading}
         />
 
         {/* Friends' Stories */}
         {otherUsersGroups.map((group) => {
           const groupIdx = groupedStories.findIndex(g => g.user._id === group.user._id);
+          const latestStory = group.stories[group.stories.length - 1];
           return (
             <div key={group.user._id} className="story-card friend-story-card" onClick={() => setViewerGroupIndex(groupIdx)}>
-              {/* Show the most recent story image as background for MVP */}
-              <img src={group.stories[group.stories.length - 1].image} alt={`${group.user.name}'s story`} className="story-bg-img" />
+              {latestStory.video ? (
+                <video src={latestStory.video} className="story-bg-img" muted />
+              ) : (
+                <img src={latestStory.image} alt={`${group.user.name}'s story`} className="story-bg-img" />
+              )}
               <div className="story-overlay">
                 <div className="story-avatar has-story">
                   {group.user.profilePicture ? (
