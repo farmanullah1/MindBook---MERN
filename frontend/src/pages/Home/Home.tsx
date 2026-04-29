@@ -1,4 +1,5 @@
 import React from 'react';
+import { useInView } from 'react-intersection-observer';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchFeedPosts } from '../../store/slices/postsSlice';
 import Navbar from '../../components/Navbar/Navbar';
@@ -12,18 +13,21 @@ import './Home.css';
 const Home: React.FC = () => {
   const dispatch = useAppDispatch();
   const { posts, loading, currentPage, totalPages } = useAppSelector((state) => state.posts);
+  const { ref, inView } = useInView({
+    threshold: 0,
+    triggerOnce: false
+  });
 
   React.useEffect(() => {
     dispatch(fetchFeedPosts(1));
   }, [dispatch]);
 
-  // Auto-refresh every 30 seconds
+  // Load more when reaching bottom
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      dispatch(fetchFeedPosts(1));
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [dispatch]);
+    if (inView && !loading && currentPage < totalPages) {
+      dispatch(fetchFeedPosts(currentPage + 1));
+    }
+  }, [inView, loading, currentPage, totalPages, dispatch]);
 
   return (
     <>
@@ -35,30 +39,22 @@ const Home: React.FC = () => {
             <StoriesFeed />
             <CreatePost />
 
-            {loading && posts.length === 0 ? (
+            {posts.length === 0 && loading ? (
               <div className="feed-loading">
-                <div className="skeleton-post">
-                  <div className="skeleton-header">
-                    <div className="skeleton skeleton-avatar" />
-                    <div className="skeleton-meta">
-                      <div className="skeleton skeleton-name" />
-                      <div className="skeleton skeleton-time" />
+                {/* Skeleton placeholders */}
+                {[1, 2].map(i => (
+                  <div key={i} className="skeleton-post">
+                    <div className="skeleton-header">
+                      <div className="skeleton skeleton-avatar" />
+                      <div className="skeleton-meta">
+                        <div className="skeleton skeleton-name" />
+                        <div className="skeleton skeleton-time" />
+                      </div>
                     </div>
+                    <div className="skeleton skeleton-content" />
+                    <div className="skeleton skeleton-content short" />
                   </div>
-                  <div className="skeleton skeleton-content" />
-                  <div className="skeleton skeleton-content short" />
-                </div>
-                <div className="skeleton-post">
-                  <div className="skeleton-header">
-                    <div className="skeleton skeleton-avatar" />
-                    <div className="skeleton-meta">
-                      <div className="skeleton skeleton-name" />
-                      <div className="skeleton skeleton-time" />
-                    </div>
-                  </div>
-                  <div className="skeleton skeleton-content" />
-                  <div className="skeleton skeleton-image" />
-                </div>
+                ))}
               </div>
             ) : posts.length === 0 ? (
               <div className="feed-empty card">
@@ -71,17 +67,15 @@ const Home: React.FC = () => {
             ) : (
               <>
                 {posts.map((post) => <Post key={post._id} post={post} />)}
-                {posts.length > 0 && currentPage < totalPages && (
-                  <div className="load-more-container">
-                    <button 
-                      className="btn btn-secondary btn-full" 
-                      onClick={() => dispatch(fetchFeedPosts(currentPage + 1))}
-                      disabled={loading}
-                    >
-                      {loading ? <div className="spinner small" /> : 'Load More'}
-                    </button>
-                  </div>
-                )}
+                
+                {/* Infinite Scroll Trigger */}
+                <div ref={ref} className="infinite-scroll-trigger">
+                  {loading && currentPage < totalPages && (
+                    <div className="load-more-spinner">
+                      <div className="spinner small" />
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </div>

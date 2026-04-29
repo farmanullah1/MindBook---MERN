@@ -73,14 +73,8 @@ const Navbar: React.FC = () => {
           <Link to="/" className="navbar-logo" id="navbar-logo">
             <div className="logo-icon">
               <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-                <rect width="40" height="40" rx="10" fill="url(#logoGrad)" />
-                <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="22" fontWeight="700" fontFamily="Inter, sans-serif">M</text>
-                <defs>
-                  <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40">
-                    <stop offset="0%" stopColor="#F7B928" />
-                    <stop offset="100%" stopColor="#D99A1C" />
-                  </linearGradient>
-                </defs>
+                <circle cx="20" cy="20" r="20" fill="var(--brand-primary)" />
+                <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="24" fontWeight="900" fontFamily="Arial, sans-serif">M</text>
               </svg>
             </div>
             <span className="logo-text">Minds Books</span>

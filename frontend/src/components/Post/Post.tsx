@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiThumbsUp, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiSend, FiBookmark, FiEdit2 } from 'react-icons/fi';
+import { FiThumbsUp, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiSend, FiBookmark, FiEdit2, FiMapPin } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { likePost, commentOnPost, deletePost, updatePost } from '../../store/slices/postsSlice';
+import { likePost, commentOnPost, deletePost, updatePost, deleteComment } from '../../store/slices/postsSlice';
 import { toggleSavePost } from '../../store/slices/authSlice';
 import { IPost } from '../../types';
 import { getInitials, formatTimeAgo } from '../../utils/helpers';
@@ -70,6 +70,22 @@ const Post: React.FC<PostProps> = ({ post }) => {
     setIsEditing(false);
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (window.confirm('Delete this comment?')) {
+      await dispatch(deleteComment({ postId: post._id, commentId }));
+    }
+  };
+
+  const linkifyContent = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, i) => {
+      if (part.match(urlRegex)) {
+        return <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="post-link">{part}</a>;
+      }
+      return part;
+    });
+  };
+
   return (
     <article className="post card" id={`post-${post._id}`}>
       {/* Post Header */}
@@ -82,7 +98,17 @@ const Post: React.FC<PostProps> = ({ post }) => {
           )}
           <div className="post-user-meta">
             <span className="post-user-name">{post.user.name}</span>
-            <span className="post-time">{formatTimeAgo(post.createdAt)}</span>
+            <div className="post-time-location">
+              <span className="post-time">{formatTimeAgo(post.createdAt)}</span>
+              {post.location && (
+                <>
+                  <span className="dot">•</span>
+                  <span className="post-location">
+                    <FiMapPin size={12} /> {post.location}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </Link>
           <div className="post-menu-container" ref={menuRef}>
@@ -129,7 +155,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
       ) : (
         post.content && (
           <div className="post-content">
-            <p>{post.content}</p>
+            <p>{linkifyContent(post.content)}</p>
           </div>
         )
       )}
@@ -203,9 +229,16 @@ const Post: React.FC<PostProps> = ({ post }) => {
               </Link>
               <div className="comment-body">
                 <div className="comment-bubble">
-                  <Link to={`/profile/${comment.user._id}`} className="comment-author">
-                    {comment.user.name}
-                  </Link>
+                  <div className="comment-header-row">
+                    <Link to={`/profile/${comment.user._id}`} className="comment-author">
+                      {comment.user.name}
+                    </Link>
+                    {(comment.user._id === user?._id || isOwner) && (
+                      <button className="comment-delete-btn" onClick={() => handleDeleteComment(comment._id)}>
+                        <FiTrash2 size={12} />
+                      </button>
+                    )}
+                  </div>
                   <p className="comment-text">{comment.text}</p>
                 </div>
                 <div className="comment-meta">

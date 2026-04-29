@@ -45,6 +45,10 @@ const postSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Group',
     },
+    location: {
+      type: String,
+      default: '',
+    },
     comments: [commentSchema],
   },
   {

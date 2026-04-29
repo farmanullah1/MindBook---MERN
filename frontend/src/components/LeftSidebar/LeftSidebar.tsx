@@ -1,19 +1,22 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { FiHome, FiUsers, FiBookmark, FiCalendar, FiFlag, FiShoppingBag, FiChevronDown } from 'react-icons/fi';
-import { useAppSelector } from '../../store/hooks';
+import { Link, useNavigate } from 'react-router-dom';
+import { FiHome, FiUsers, FiBookmark, FiCalendar, FiFlag, FiShoppingBag, FiChevronDown, FiLogOut } from 'react-icons/fi';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { logout } from '../../store/slices/authSlice';
 import { getInitials } from '../../utils/helpers';
 import './LeftSidebar.css';
 
 const LeftSidebar: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const [showMore, setShowMore] = React.useState(false);
 
   const mainLinks = [
     { icon: <FiHome size={20} />, label: 'Home', to: '/' },
-    { icon: <FiUsers size={20} />, label: 'Friends', to: '/' },
+    { icon: <FiUsers size={20} />, label: 'Friends', to: '/friends' },
     { icon: <FiUsers size={20} />, label: 'Groups', to: '/groups' },
-    { icon: <FiBookmark size={20} />, label: 'Saved', to: '/' },
+    { icon: <FiBookmark size={20} />, label: 'Saved', to: '/saved' },
     { icon: <FiFlag size={20} />, label: 'Pages', to: '/' },
     { icon: <FiCalendar size={20} />, label: 'Events', to: '/events' },
   ];
@@ -21,6 +24,11 @@ const LeftSidebar: React.FC = () => {
   const moreLinks = [
     { icon: <FiShoppingBag size={20} />, label: 'Marketplace', to: '/' },
   ];
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   return (
     <aside className="left-sidebar" id="left-sidebar">
@@ -65,6 +73,12 @@ const LeftSidebar: React.FC = () => {
             <span className="sidebar-link-label">{showMore ? 'See less' : 'See more'}</span>
           </button>
         </nav>
+
+        {/* Logout */}
+        <button className="sidebar-link logout-link" onClick={handleLogout} style={{ marginTop: 'auto', border: 'none', background: 'none', width: '100%', textAlign: 'left' }}>
+          <span className="sidebar-link-icon"><FiLogOut size={20} /></span>
+          <span className="sidebar-link-label">Log Out</span>
+        </button>
 
         {/* Divider */}
         <div className="sidebar-divider" />

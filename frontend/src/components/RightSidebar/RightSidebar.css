@@ -117,6 +117,28 @@
   gap: var(--space-1);
 }
 
+/* Birthdays */
+.rs-birthday-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.rs-birthday-icon {
+  font-size: 24px;
+}
+
+.rs-birthday-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.rs-birthday-text strong {
+  font-weight: 600;
+}
+
 /* Contacts */
 .rs-contacts-list {
   display: flex;

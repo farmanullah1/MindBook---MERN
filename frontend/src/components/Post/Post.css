@@ -40,9 +40,28 @@
   color: var(--text-primary);
 }
 
+.post-time-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .post-time {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
+}
+
+.dot {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.post-location {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .post-menu-container {
@@ -113,6 +132,16 @@
   line-height: 1.5;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.post-link {
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.post-link:hover {
+  text-decoration: underline;
 }
 
 /* Image */
@@ -243,6 +272,37 @@
 
 .comment-author:hover {
   text-decoration: underline;
+}
+
+.comment-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: 2px;
+}
+
+.comment-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.comment-bubble:hover .comment-delete-btn {
+  opacity: 1;
+}
+
+.comment-delete-btn:hover {
+  background: var(--divider-color);
+  color: var(--error-color);
 }
 
 .comment-text {

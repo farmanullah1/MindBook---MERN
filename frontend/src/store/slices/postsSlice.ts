@@ -71,6 +71,18 @@ export const commentOnPost = createAsyncThunk(
   }
 );
 
+export const deleteComment = createAsyncThunk(
+  'posts/deleteComment',
+  async ({ postId, commentId }: { postId: string; commentId: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/posts/${postId}/comment/${commentId}`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete comment');
+    }
+  }
+);
+
 export const deletePost = createAsyncThunk(
   'posts/delete',
   async (postId: string, { rejectWithValue }) => {
@@ -154,6 +166,10 @@ const postsSlice = createSlice({
         state.userPosts = updatePostInList(state.userPosts, action.payload);
       })
       .addCase(commentOnPost.fulfilled, (state, action) => {
+        state.posts = updatePostInList(state.posts, action.payload);
+        state.userPosts = updatePostInList(state.userPosts, action.payload);
+      })
+      .addCase(deleteComment.fulfilled, (state, action) => {
         state.posts = updatePostInList(state.posts, action.payload);
         state.userPosts = updatePostInList(state.userPosts, action.payload);
       })

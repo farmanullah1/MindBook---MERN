@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiImage, FiSmile, FiVideo } from 'react-icons/fi';
+import { FiImage, FiSmile, FiVideo, FiMapPin, FiX } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createPost } from '../../store/slices/postsSlice';
 import { uploadImage } from '../../services/api';
@@ -17,6 +17,8 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
   const { user } = useAppSelector((state) => state.auth);
   
   const [content, setContent] = React.useState('');
+  const [location, setLocation] = React.useState('');
+  const [showLocationInput, setShowLocationInput] = React.useState(false);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -50,13 +52,17 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
         uploadedImageUrl = await uploadImage(imageFile);
       }
 
+      const postData = { content, image: uploadedImageUrl, location };
+
       if (groupId) {
-        const res = await api.post(`/groups/${groupId}/posts`, { content, image: uploadedImageUrl });
+        const res = await api.post(`/groups/${groupId}/posts`, postData);
         if (onPostCreated) onPostCreated(res.data);
       } else {
-        await dispatch(createPost({ content, image: uploadedImageUrl })).unwrap();
+        await dispatch(createPost(postData)).unwrap();
       }
       setContent('');
+      setLocation('');
+      setShowLocationInput(false);
       removeImage();
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -94,6 +100,22 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
           />
         </div>
 
+        {showLocationInput && (
+          <div className="location-input-wrapper">
+            <FiMapPin size={16} className="text-danger" />
+            <input 
+              type="text" 
+              className="location-input" 
+              placeholder="Add location..." 
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+            <button type="button" className="close-btn" onClick={() => { setLocation(''); setShowLocationInput(false); }}>
+              <FiX size={16} />
+            </button>
+          </div>
+        )}
+
         <div className="create-post-media">
           {imagePreview && (
             <div className="create-post-image-preview">
@@ -103,7 +125,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
                 className="remove-image-btn"
                 onClick={removeImage}
               >
-                ×
+                <FiX />
               </button>
             </div>
           )}
@@ -127,9 +149,9 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
               <FiImage size={20} className="action-icon text-success" />
               <span>Photo</span>
             </button>
-            <button type="button" className="action-btn">
-              <FiVideo size={20} className="action-icon text-danger" />
-              <span>Video</span>
+            <button type="button" className="action-btn" onClick={() => setShowLocationInput(!showLocationInput)}>
+              <FiMapPin size={20} className="action-icon text-danger" />
+              <span>Location</span>
             </button>
             <button type="button" className="action-btn">
               <FiSmile size={20} className="action-icon text-warning" />

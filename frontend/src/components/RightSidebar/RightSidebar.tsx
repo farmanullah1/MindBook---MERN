@@ -101,6 +101,18 @@ const RightSidebar: React.FC = () => {
           </div>
         )}
 
+        {/* Birthdays */}
+        <div className="rs-section">
+          <h3 className="rs-section-title">Birthdays</h3>
+          <div className="rs-birthday-item">
+            <span className="rs-birthday-icon">🎁</span>
+            <span className="rs-birthday-text">
+              <strong>John Doe</strong> and <strong>2 others</strong> have birthdays today.
+            </span>
+          </div>
+          <div className="rs-divider" />
+        </div>
+
         {/* Contacts */}
         <div className="rs-section">
           <div className="rs-section-header">

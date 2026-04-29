@@ -58,15 +58,9 @@ const Register: React.FC = () => {
         {/* Left Section - Branding */}
         <div className="auth-branding">
           <div className="auth-logo">
-            <svg width="52" height="52" viewBox="0 0 40 40" fill="none">
-              <rect width="40" height="40" rx="10" fill="url(#regLogoGrad)" />
-              <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="22" fontWeight="700" fontFamily="Inter, sans-serif">M</text>
-              <defs>
-                <linearGradient id="regLogoGrad" x1="0" y1="0" x2="40" y2="40">
-                  <stop offset="0%" stopColor="#F7B928" />
-                  <stop offset="100%" stopColor="#D99A1C" />
-                </linearGradient>
-              </defs>
+            <svg width="60" height="60" viewBox="0 0 40 40" fill="none">
+              <circle cx="20" cy="20" r="20" fill="var(--brand-primary)" />
+              <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="24" fontWeight="900" fontFamily="Arial, sans-serif">M</text>
             </svg>
             <h1 className="auth-title">Minds Books</h1>
           </div>
