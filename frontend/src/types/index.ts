@@ -4,9 +4,10 @@ export interface IUser {
   email: string;
   profilePicture: string;
   coverPicture: string;
-  bio: string;
-  city: string;
-  workplace: string;
+  bio?: string;
+  city?: string;
+  workplace?: string;
+  savedPosts?: string[];
   friends: IUser[];
   friendRequests: IUser[];
   sentFriendRequests: IUser[];

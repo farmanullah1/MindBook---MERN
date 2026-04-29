@@ -40,39 +40,48 @@
   color: var(--text-secondary);
 }
 
-.create-post-image-input {
-  padding: var(--space-3) 0 0;
+.create-post-media {
+  margin-top: var(--space-3);
 }
 
-.create-post-image-input .input-field {
-  border: 1px solid var(--input-border-color);
-  border-radius: var(--radius-md);
-}
-
-.image-preview {
-  margin-top: var(--space-2);
+.create-post-image-preview {
+  position: relative;
   border-radius: var(--radius-md);
   overflow: hidden;
   max-height: 300px;
 }
 
-.image-preview img {
+.create-post-image-preview img {
   width: 100%;
   max-height: 300px;
   object-fit: cover;
 }
 
-.create-post-divider {
-  height: 1px;
-  background: var(--divider-color);
-  margin: var(--space-3) 0;
+.remove-image-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
 }
 
-.create-post-bottom {
+.create-post-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--divider-color);
 }
 
 .create-post-actions {
@@ -81,7 +90,7 @@
   flex: 1;
 }
 
-.create-post-action {
+.action-btn {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -97,21 +106,13 @@
   white-space: nowrap;
 }
 
-.create-post-action:hover {
+.action-btn:hover {
   background: var(--hover-overlay);
 }
 
-.action-icon-green {
-  color: #45bd62;
-}
-
-.action-icon-yellow {
-  color: #f7b928;
-}
-
-.action-icon-red {
-  color: #e7413a;
-}
+.text-success { color: #45bd62; }
+.text-danger { color: #e7413a; }
+.text-warning { color: #f7b928; }
 
 @media (max-width: 600px) {
   .create-post-action span {

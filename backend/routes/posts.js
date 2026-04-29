@@ -11,6 +11,8 @@ const {
   likePost,
   commentOnPost,
   deleteComment,
+  commentOnPost,
+  deleteComment,
 } = require('../controllers/postController');
 
 router.get('/feed', auth, getFeedPosts);
@@ -22,5 +24,4 @@ router.delete('/:id', auth, deletePost);
 router.put('/:id/like', auth, likePost);
 router.post('/:id/comment', auth, commentOnPost);
 router.delete('/:id/comment/:commentId', auth, deleteComment);
-
 module.exports = router;

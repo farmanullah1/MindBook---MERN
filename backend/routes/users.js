@@ -10,8 +10,11 @@ const {
   declineFriendRequest,
   removeFriend,
   getSuggestedFriends,
+  searchUsers,
+  toggleSavePost,
 } = require('../controllers/userController');
 
+router.get('/search', auth, searchUsers);
 router.get('/suggestions', auth, getSuggestedFriends);
 router.get('/', auth, getAllUsers);
 router.get('/:id', auth, getUser);
@@ -20,5 +23,6 @@ router.post('/friend-request', auth, sendFriendRequest);
 router.post('/friend-request/accept', auth, acceptFriendRequest);
 router.post('/friend-request/decline', auth, declineFriendRequest);
 router.post('/unfriend', auth, removeFriend);
+router.post('/save-post/:postId', auth, toggleSavePost);
 
 module.exports = router;

@@ -89,6 +89,23 @@
   color: var(--text-secondary);
 }
 
+.navbar-search-container {
+  position: relative;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 320px;
+  background: var(--card-background);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: var(--space-2);
+  margin-top: 8px;
+  z-index: 1000;
+}
+
 /* Center */
 .navbar-center {
   display: flex;

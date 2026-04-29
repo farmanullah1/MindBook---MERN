@@ -7,6 +7,7 @@ import { updateUserInState } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import { IUser } from '../../types';
 import { getInitials, formatDate } from '../../utils/helpers';
+import { uploadImage } from '../../services/api';
 import Navbar from '../../components/Navbar/Navbar';
 import CreatePost from '../../components/CreatePost/CreatePost';
 import Post from '../../components/Post/Post';
@@ -23,6 +24,9 @@ const Profile: React.FC = () => {
   const [editingBio, setEditingBio] = React.useState(false);
   const [bioText, setBioText] = React.useState('');
   const [friendStatus, setFriendStatus] = React.useState<'none' | 'friends' | 'pending' | 'requested'>('none');
+  
+  const coverInputRef = React.useRef<HTMLInputElement>(null);
+  const avatarInputRef = React.useRef<HTMLInputElement>(null);
 
   const isOwnProfile = currentUser?._id === id;
 
@@ -89,6 +93,19 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'coverPicture' | 'profilePicture') => {
+    if (e.target.files && e.target.files[0]) {
+      try {
+        const url = await uploadImage(e.target.files[0]);
+        await api.put(`/users/${currentUser?._id}`, { [type]: url });
+        setProfileUser((prev) => prev ? { ...prev, [type]: url } : prev);
+        dispatch(updateUserInState({ [type]: url }));
+      } catch (error) {
+        console.error('Failed to update image:', error);
+      }
+    }
+  };
+
   if (profileLoading) {
     return (
       <>
@@ -128,15 +145,33 @@ const Profile: React.FC = () => {
             ) : (
               <div className="cover-placeholder" />
             )}
+            {isOwnProfile && (
+              <>
+                <button className="edit-cover-btn" onClick={() => coverInputRef.current?.click()}>
+                  <FiEdit3 size={16} /> Edit Cover
+                </button>
+                <input type="file" hidden ref={coverInputRef} onChange={(e) => handleImageUpload(e, 'coverPicture')} accept="image/*" />
+              </>
+            )}
           </div>
 
           <div className="profile-header-inner">
             <div className="profile-avatar-section">
-              {profileUser.profilePicture ? (
-                <img src={profileUser.profilePicture} alt={profileUser.name} className="avatar avatar-xl" />
-              ) : (
-                <div className="avatar avatar-xl">{getInitials(profileUser.name)}</div>
-              )}
+              <div className="avatar-wrapper">
+                {profileUser.profilePicture ? (
+                  <img src={profileUser.profilePicture} alt={profileUser.name} className="avatar avatar-xl" />
+                ) : (
+                  <div className="avatar avatar-xl">{getInitials(profileUser.name)}</div>
+                )}
+                {isOwnProfile && (
+                  <>
+                    <button className="edit-avatar-btn" onClick={() => avatarInputRef.current?.click()}>
+                      <FiEdit3 size={14} />
+                    </button>
+                    <input type="file" hidden ref={avatarInputRef} onChange={(e) => handleImageUpload(e, 'profilePicture')} accept="image/*" />
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="profile-info-section">

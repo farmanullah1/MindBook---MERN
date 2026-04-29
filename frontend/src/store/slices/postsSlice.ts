@@ -83,6 +83,18 @@ export const deletePost = createAsyncThunk(
   }
 );
 
+export const updatePost = createAsyncThunk(
+  'posts/update',
+  async (data: { postId: string; content: string; image?: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/posts/${data.postId}`, data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update post');
+    }
+  }
+);
+
 const updatePostInList = (posts: IPost[], updatedPost: IPost): IPost[] => {
   return posts.map((p) => (p._id === updatedPost._id ? updatedPost : p));
 };
@@ -148,6 +160,16 @@ const postsSlice = createSlice({
       .addCase(deletePost.fulfilled, (state, action) => {
         state.posts = state.posts.filter((p) => p._id !== action.payload);
         state.userPosts = state.userPosts.filter((p) => p._id !== action.payload);
+      })
+      .addCase(updatePost.fulfilled, (state, action) => {
+        const index = state.posts.findIndex((p) => p._id === action.payload._id);
+        if (index !== -1) {
+          state.posts[index] = action.payload;
+        }
+        const userIndex = state.userPosts.findIndex((p) => p._id === action.payload._id);
+        if (userIndex !== -1) {
+          state.userPosts[userIndex] = action.payload;
+        }
       });
   },
 });

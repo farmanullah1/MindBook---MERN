@@ -207,6 +207,40 @@ const getSuggestedFriends = async (req, res) => {
   }
 };
 
+const searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.json([]);
+    const users = await User.find({ name: { $regex: q, $options: 'i' } })
+      .select('name profilePicture')
+      .limit(10);
+    res.json(users);
+  } catch (error) {
+    console.error('SearchUsers error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const toggleSavePost = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const postId = req.params.postId;
+
+    if (user.savedPosts.includes(postId)) {
+      user.savedPosts = user.savedPosts.filter((id) => id.toString() !== postId);
+    } else {
+      user.savedPosts.push(postId);
+    }
+    await user.save();
+    
+    // Return updated user object
+    res.json(user);
+  } catch (error) {
+    console.error('ToggleSavePost error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getUser,
   getAllUsers,
@@ -216,4 +250,6 @@ module.exports = {
   declineFriendRequest,
   removeFriend,
   getSuggestedFriends,
+  searchUsers,
+  toggleSavePost,
 };

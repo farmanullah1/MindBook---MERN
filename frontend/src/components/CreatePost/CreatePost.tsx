@@ -1,35 +1,57 @@
 import React from 'react';
-import { FiImage, FiSmile, FiMapPin } from 'react-icons/fi';
+import { FiImage, FiSmile, FiVideo } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createPost } from '../../store/slices/postsSlice';
+import { uploadImage } from '../../services/api';
 import { getInitials } from '../../utils/helpers';
 import './CreatePost.css';
 
 const CreatePost: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  
   const [content, setContent] = React.useState('');
-  const [imageUrl, setImageUrl] = React.useState('');
-  const [showImageInput, setShowImageInput] = React.useState(false);
-  const [isPosting, setIsPosting] = React.useState(false);
+  const [imageFile, setImageFile] = React.useState<File | null>(null);
+  const [imagePreview, setImagePreview] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = async () => {
-    if (!content.trim() && !imageUrl.trim()) return;
-    setIsPosting(true);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!content.trim() && !imageFile) return;
+
+    setLoading(true);
     try {
-      await dispatch(createPost({ content: content.trim(), image: imageUrl.trim() })).unwrap();
-      setContent('');
-      setImageUrl('');
-      setShowImageInput(false);
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+      let uploadedImageUrl = '';
+      if (imageFile) {
+        uploadedImageUrl = await uploadImage(imageFile);
       }
+
+      await dispatch(createPost({ content, image: uploadedImageUrl })).unwrap();
+      setContent('');
+      removeImage();
     } catch (error) {
       console.error('Failed to create post:', error);
+    } finally {
+      setLoading(false);
     }
-    setIsPosting(false);
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -41,77 +63,78 @@ const CreatePost: React.FC = () => {
   };
 
   return (
-    <div className="create-post card" id="create-post">
-      <div className="create-post-top">
-        <div className="create-post-avatar">
-          {user?.profilePicture ? (
-            <img src={user.profilePicture} alt={user.name} className="avatar" />
-          ) : (
-            <div className="avatar">{user ? getInitials(user.name) : '?'}</div>
-          )}
-        </div>
-        <textarea
-          ref={textareaRef}
-          className="create-post-input"
-          placeholder={`What's on your mind, ${user?.name?.split(' ')[0] || 'User'}?`}
-          value={content}
-          onChange={handleTextareaChange}
-          rows={1}
-          id="create-post-input"
-        />
-      </div>
-
-      {showImageInput && (
-        <div className="create-post-image-input">
-          <input
-            type="text"
-            className="input-field"
-            placeholder="Paste image URL here..."
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            id="create-post-image-url"
+    <div className="create-post card">
+      <form onSubmit={handleSubmit}>
+        <div className="create-post-top">
+          <div className="create-post-avatar">
+            {user?.profilePicture ? (
+              <img src={user.profilePicture} alt={user.name} className="avatar" />
+            ) : (
+              <div className="avatar">{user ? getInitials(user.name) : '?'}</div>
+            )}
+          </div>
+          <textarea
+            ref={textareaRef}
+            className="create-post-input"
+            placeholder={`What's on your mind, ${user?.name?.split(' ')[0] || 'User'}?`}
+            value={content}
+            onChange={handleTextareaChange}
+            rows={1}
           />
-          {imageUrl && (
-            <div className="image-preview">
-              <img src={imageUrl} alt="Preview" onError={(e) => (e.currentTarget.style.display = 'none')} />
+        </div>
+
+        <div className="create-post-media">
+          {imagePreview && (
+            <div className="create-post-image-preview">
+              <img src={imagePreview} alt="Preview" />
+              <button 
+                type="button" 
+                className="remove-image-btn"
+                onClick={removeImage}
+              >
+                ×
+              </button>
             </div>
           )}
+          
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={fileInputRef} 
+            onChange={handleImageChange} 
+            style={{ display: 'none' }} 
+          />
         </div>
-      )}
-
-      <div className="create-post-divider" />
-
-      <div className="create-post-bottom">
-        <div className="create-post-actions">
-          <button
-            className="create-post-action"
-            onClick={() => setShowImageInput(!showImageInput)}
-            id="toggle-image-input"
-          >
-            <FiImage size={20} className="action-icon action-icon-green" />
-            <span>Photo/Video</span>
-          </button>
-          <button className="create-post-action">
-            <FiSmile size={20} className="action-icon action-icon-yellow" />
-            <span>Feeling/Activity</span>
-          </button>
-          <button className="create-post-action hide-mobile">
-            <FiMapPin size={20} className="action-icon action-icon-red" />
-            <span>Check in</span>
-          </button>
-        </div>
-
-        {(content.trim() || imageUrl.trim()) && (
-          <button
+        
+        <div className="create-post-footer">
+          <div className="create-post-actions">
+            <button 
+              type="button" 
+              className="action-btn"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <FiImage size={20} className="action-icon text-success" />
+              <span>Photo</span>
+            </button>
+            <button type="button" className="action-btn">
+              <FiVideo size={20} className="action-icon text-danger" />
+              <span>Video</span>
+            </button>
+            <button type="button" className="action-btn">
+              <FiSmile size={20} className="action-icon text-warning" />
+              <span>Feeling</span>
+            </button>
+          </div>
+          
+          <button 
+            type="submit" 
             className="btn btn-primary"
-            onClick={handleSubmit}
-            disabled={isPosting}
-            id="submit-post-btn"
+            disabled={(!content.trim() && !imageFile) || loading}
           >
-            {isPosting ? 'Posting...' : 'Post'}
+            {loading ? 'Posting...' : 'Post'}
           </button>
-        )}
-      </div>
+        </div>
+      </form>
     </div>
   );
 };

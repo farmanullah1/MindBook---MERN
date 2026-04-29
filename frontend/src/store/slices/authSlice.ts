@@ -36,17 +36,24 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const fetchCurrentUser = createAsyncThunk(
-  'auth/fetchCurrentUser',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await api.get('/auth/me');
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
-    }
+export const fetchCurrentUser = createAsyncThunk('auth/me', async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.get('/auth/me');
+    return response.data;
+  } catch (error: any) {
+    localStorage.removeItem('token');
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
   }
-);
+});
+
+export const toggleSavePost = createAsyncThunk('auth/savePost', async (postId: string, { rejectWithValue }) => {
+  try {
+    const response = await api.post(`/users/save-post/${postId}`);
+    return response.data.savedPosts || response.data; // Ensure we get the updated user or savedPosts array
+  } catch (error: any) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to save post');
+  }
+});
 
 const authSlice = createSlice({
   name: 'auth',
@@ -115,6 +122,16 @@ const authSlice = createSlice({
         state.token = null;
         localStorage.removeItem('minds_books_token');
         localStorage.removeItem('minds_books_user');
+      })
+      .addCase(toggleSavePost.fulfilled, (state, action) => {
+        if (state.user) {
+          // Depending on API, action.payload might be full user or array
+          if (Array.isArray(action.payload)) {
+             state.user.savedPosts = action.payload;
+          } else {
+             state.user.savedPosts = action.payload.savedPosts;
+          }
+        }
       });
   },
 });

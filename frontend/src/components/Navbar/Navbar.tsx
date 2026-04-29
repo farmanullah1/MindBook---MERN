@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiSearch, FiHome, FiUsers, FiMessageSquare, FiBell, FiLogOut, FiMenu } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
+import api from '../../services/api';
+import { IUser } from '../../types';
 import { getInitials } from '../../utils/helpers';
 import './Navbar.css';
 
@@ -11,19 +13,44 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchResults, setSearchResults] = React.useState<IUser[]>([]);
+  const [isSearching, setIsSearching] = React.useState(false);
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
   const [showMobileMenu, setShowMobileMenu] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
+  const searchRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setShowProfileMenu(false);
       }
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchResults([]);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  React.useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        setIsSearching(true);
+        try {
+          const res = await api.get(`/users/search?q=${searchQuery}`);
+          setSearchResults(res.data);
+        } catch (error) {
+          console.error(error);
+        }
+        setIsSearching(false);
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -57,16 +84,39 @@ const Navbar: React.FC = () => {
             </div>
             <span className="logo-text">Minds Books</span>
           </Link>
-          <form className="navbar-search" onSubmit={handleSearch} id="navbar-search">
-            <FiSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search Minds Books"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              id="search-input"
-            />
-          </form>
+          <div className="navbar-search-container" ref={searchRef}>
+            <form className="navbar-search" onSubmit={handleSearch} id="navbar-search">
+              <FiSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search Minds Books"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                id="search-input"
+              />
+            </form>
+            {searchResults.length > 0 && (
+              <div className="search-dropdown dropdown-menu">
+                {searchResults.map(resultUser => (
+                  <Link 
+                    key={resultUser._id} 
+                    to={`/profile/${resultUser._id}`} 
+                    className="dropdown-item"
+                    onClick={() => { setSearchResults([]); setSearchQuery(''); }}
+                  >
+                    <div className="dropdown-avatar">
+                      {resultUser.profilePicture ? (
+                        <img src={resultUser.profilePicture} alt={resultUser.name} />
+                      ) : (
+                        <div className="avatar-initials">{getInitials(resultUser.name)}</div>
+                      )}
+                    </div>
+                    <span>{resultUser.name}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Center Section */}

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiThumbsUp, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiSend } from 'react-icons/fi';
+import { FiThumbsUp, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiSend, FiBookmark, FiEdit2 } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { likePost, commentOnPost, deletePost } from '../../store/slices/postsSlice';
+import { likePost, commentOnPost, deletePost, updatePost } from '../../store/slices/postsSlice';
+import { toggleSavePost } from '../../store/slices/authSlice';
 import { IPost } from '../../types';
 import { getInitials, formatTimeAgo } from '../../utils/helpers';
 import './Post.css';
@@ -22,6 +23,10 @@ const Post: React.FC<PostProps> = ({ post }) => {
 
   const isLiked = user ? post.likes.includes(user._id) : false;
   const isOwner = user?._id === post.user._id;
+  const isSaved = user?.savedPosts?.includes(post._id) || false;
+
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editContent, setEditContent] = React.useState(post.content);
 
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -54,6 +59,17 @@ const Post: React.FC<PostProps> = ({ post }) => {
     setShowMenu(false);
   };
 
+  const handleSave = async () => {
+    await dispatch(toggleSavePost(post._id));
+    setShowMenu(false);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editContent.trim()) return;
+    await dispatch(updatePost({ postId: post._id, content: editContent }));
+    setIsEditing(false);
+  };
+
   return (
     <article className="post card" id={`post-${post._id}`}>
       {/* Post Header */}
@@ -69,28 +85,53 @@ const Post: React.FC<PostProps> = ({ post }) => {
             <span className="post-time">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </Link>
-        {isOwner && (
           <div className="post-menu-container" ref={menuRef}>
             <button className="post-menu-btn" onClick={() => setShowMenu(!showMenu)}>
               <FiMoreHorizontal size={20} />
             </button>
             {showMenu && (
               <div className="post-menu-dropdown">
-                <button className="post-menu-item delete-item" onClick={handleDelete}>
-                  <FiTrash2 size={16} />
-                  <span>Delete post</span>
+                <button className="post-menu-item" onClick={handleSave}>
+                  <FiBookmark size={16} className={isSaved ? 'text-brand' : ''} />
+                  <span>{isSaved ? 'Unsave post' : 'Save post'}</span>
                 </button>
+                {isOwner && (
+                  <>
+                    <button className="post-menu-item" onClick={() => { setIsEditing(true); setShowMenu(false); }}>
+                      <FiEdit2 size={16} />
+                      <span>Edit post</span>
+                    </button>
+                    <button className="post-menu-item delete-item" onClick={handleDelete}>
+                      <FiTrash2 size={16} />
+                      <span>Delete post</span>
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
-        )}
       </div>
 
       {/* Post Content */}
-      {post.content && (
-        <div className="post-content">
-          <p>{post.content}</p>
+      {isEditing ? (
+        <div className="post-edit-container" style={{ padding: '0 16px', marginTop: '12px' }}>
+          <textarea
+            className="create-post-input"
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            style={{ width: '100%', marginBottom: '8px' }}
+          />
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(false)}>Cancel</button>
+            <button className="btn btn-primary btn-sm" onClick={handleEditSubmit}>Save</button>
+          </div>
         </div>
+      ) : (
+        post.content && (
+          <div className="post-content">
+            <p>{post.content}</p>
+          </div>
+        )
       )}
 
       {/* Post Image */}

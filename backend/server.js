@@ -8,6 +8,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const postRoutes = require('./routes/posts');
+const uploadRoutes = require('./routes/upload');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Minds Books API is running' });
