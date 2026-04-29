@@ -1,0 +1,157 @@
+.stories-feed-container {
+  margin-bottom: var(--space-4);
+  position: relative;
+  width: 100%;
+}
+
+.stories-scroll-wrapper {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+}
+
+/* Hide scrollbar for webkit */
+.stories-scroll-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.stories-scroll-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.stories-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+
+.story-card {
+  min-width: 112px;
+  width: 112px;
+  height: 200px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform var(--transition-fast);
+  background: var(--card-background);
+}
+
+.story-card:hover {
+  transform: scale(1.02);
+}
+
+.story-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.story-card:hover .story-bg-img {
+  transform: scale(1.05);
+}
+
+.story-bg-img.blur-bg {
+  height: 65%;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.story-bg-placeholder {
+  height: 65%;
+  background: var(--brand-primary-light);
+}
+
+.story-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.story-overlay.create-overlay {
+  background: none;
+  justify-content: flex-end;
+  align-items: center;
+  padding-bottom: 12px;
+}
+
+.story-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--brand-primary);
+  background: white;
+}
+
+.story-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-avatar .avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--comment-background);
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.story-author {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  text-align: left;
+  line-height: 1.2;
+}
+
+.story-author.text-dark {
+  color: var(--text-primary);
+  text-shadow: none;
+  margin-top: 18px;
+}
+
+.create-story-btn {
+  position: absolute;
+  bottom: 30px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.create-story-btn.main-btn {
+  left: 50%;
+  bottom: 35px;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--card-background);
+}
+
+.spinner.small {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}

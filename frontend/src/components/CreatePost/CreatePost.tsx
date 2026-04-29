@@ -3,10 +3,16 @@ import { FiImage, FiSmile, FiVideo } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createPost } from '../../store/slices/postsSlice';
 import { uploadImage } from '../../services/api';
+import api from '../../services/api';
 import { getInitials } from '../../utils/helpers';
 import './CreatePost.css';
 
-const CreatePost: React.FC = () => {
+interface CreatePostProps {
+  groupId?: string;
+  onPostCreated?: (post: any) => void;
+}
+
+const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   
@@ -44,7 +50,12 @@ const CreatePost: React.FC = () => {
         uploadedImageUrl = await uploadImage(imageFile);
       }
 
-      await dispatch(createPost({ content, image: uploadedImageUrl })).unwrap();
+      if (groupId) {
+        const res = await api.post(`/groups/${groupId}/posts`, { content, image: uploadedImageUrl });
+        if (onPostCreated) onPostCreated(res.data);
+      } else {
+        await dispatch(createPost({ content, image: uploadedImageUrl })).unwrap();
+      }
       setContent('');
       removeImage();
     } catch (error) {

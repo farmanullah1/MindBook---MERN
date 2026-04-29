@@ -89,3 +89,15 @@
   font-size: var(--font-size-base);
   max-width: 300px;
 }
+
+.load-more-container {
+  margin: var(--space-6) 0;
+  display: flex;
+  justify-content: center;
+}
+
+.load-more-container .btn {
+  max-width: 200px;
+  box-shadow: var(--shadow-elevated);
+}
+

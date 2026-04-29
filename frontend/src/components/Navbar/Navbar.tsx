@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiSearch, FiHome, FiUsers, FiMessageSquare, FiBell, FiLogOut, FiMenu } from 'react-icons/fi';
+import { FiSearch, FiHome, FiUsers, FiMessageSquare, FiBell, FiLogOut, FiMenu, FiCalendar, FiGrid } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../services/api';
 import { IUser } from '../../types';
 import { getInitials } from '../../utils/helpers';
+import NotificationsDropdown from '../NotificationsDropdown/NotificationsDropdown';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -124,12 +125,15 @@ const Navbar: React.FC = () => {
           <Link to="/" className="nav-tab active" id="nav-home" title="Home">
             <FiHome size={22} />
           </Link>
-          <Link to="/" className="nav-tab" id="nav-friends" title="Friends">
-            <FiUsers size={22} />
+          <Link to="/groups" className="nav-tab" id="nav-groups" title="Groups">
+            <FiGrid size={22} />
           </Link>
-          <button className="nav-tab" id="nav-messages" title="Messages">
+          <Link to="/events" className="nav-tab" id="nav-events" title="Events">
+            <FiCalendar size={22} />
+          </Link>
+          <Link to="/messages" className="nav-tab" id="nav-messages" title="Messages">
             <FiMessageSquare size={22} />
-          </button>
+          </Link>
         </div>
 
         {/* Right Section */}
@@ -137,10 +141,8 @@ const Navbar: React.FC = () => {
           <button className="nav-icon-btn mobile-menu-btn" onClick={() => setShowMobileMenu(!showMobileMenu)}>
             <FiMenu size={20} />
           </button>
-          <button className="nav-icon-btn" id="nav-notifications" title="Notifications">
-            <FiBell size={20} />
-            <span className="notification-badge">3</span>
-          </button>
+          
+          <NotificationsDropdown />
           <div className="profile-menu-container" ref={menuRef}>
             <button
               className="nav-profile-btn"

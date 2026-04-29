@@ -1,4 +1,6 @@
 const Post = require('../models/Post');
+const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 const createPost = async (req, res) => {
   try {
@@ -31,14 +33,17 @@ const getFeedPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const posts = await Post.find()
+    const currentUser = await User.findById(req.user.id);
+    const feedUsers = [req.user.id, ...currentUser.friends];
+
+    const posts = await Post.find({ user: { $in: feedUsers } })
       .populate('user', 'name profilePicture')
       .populate('comments.user', 'name profilePicture')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Post.countDocuments();
+    const total = await Post.countDocuments({ user: { $in: feedUsers } });
 
     res.json({
       posts,
@@ -145,6 +150,7 @@ const likePost = async (req, res) => {
 
     if (likeIndex === -1) {
       post.likes.push(req.user.id);
+      await createNotification(post.user, req.user.id, 'like', post._id);
     } else {
       post.likes.splice(likeIndex, 1);
     }
@@ -182,6 +188,8 @@ const commentOnPost = async (req, res) => {
     });
 
     await post.save();
+    
+    await createNotification(post.user, req.user.id, 'comment', post._id, text.substring(0, 50));
 
     const updatedPost = await Post.findById(post._id)
       .populate('user', 'name profilePicture')
@@ -226,6 +234,53 @@ const deleteComment = async (req, res) => {
   }
 };
 
+const getSavedPosts = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate({
+      path: 'savedPosts',
+      populate: [
+        { path: 'user', select: 'name profilePicture' },
+        { path: 'comments.user', select: 'name profilePicture' }
+      ]
+    });
+    
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Reverse array to show most recently saved first
+    res.json(user.savedPosts.reverse());
+  } catch (error) {
+    console.error('GetSavedPosts error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const toggleSavePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const isSaved = user.savedPosts.includes(req.params.id);
+
+    if (isSaved) {
+      user.savedPosts.pull(req.params.id);
+    } else {
+      user.savedPosts.push(req.params.id);
+    }
+
+    await user.save();
+    
+    res.json({ savedPosts: user.savedPosts });
+  } catch (error) {
+    console.error('ToggleSavePost error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createPost,
   getFeedPosts,
@@ -236,4 +291,6 @@ module.exports = {
   likePost,
   commentOnPost,
   deleteComment,
+  getSavedPosts,
+  toggleSavePost,
 };

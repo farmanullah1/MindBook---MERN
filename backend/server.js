@@ -5,10 +5,16 @@ const path = require('path');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
+
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const postRoutes = require('./routes/posts');
 const uploadRoutes = require('./routes/upload');
+const notificationRoutes = require('./routes/notifications');
+const messageRoutes = require('./routes/messages');
+const storyRoutes = require('./routes/stories');
+const groupRoutes = require('./routes/groups');
+const eventRoutes = require('./routes/events');
 
 const app = express();
 
@@ -28,6 +34,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/stories', storyRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/events', eventRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Minds Books API is running' });

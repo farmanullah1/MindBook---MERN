@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 const getUser = async (req, res) => {
   try {
@@ -34,11 +35,13 @@ const getAllUsers = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    if (req.params.id !== req.user.id) {
+    if (req.params.id !== req.user.id && req.originalUrl.includes(req.params.id)) {
       return res.status(403).json({ message: 'You can only update your own profile' });
     }
 
-    const allowedFields = ['name', 'bio', 'city', 'workplace', 'profilePicture', 'coverPicture'];
+    const userId = req.params.id || req.user.id;
+    
+    const allowedFields = ['name', 'bio', 'location', 'work', 'education', 'profilePicture', 'coverPicture'];
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
@@ -47,7 +50,7 @@ const updateUser = async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(
-      req.params.id,
+      userId,
       { $set: updates },
       { new: true, runValidators: true }
     ).select('-password');
@@ -97,6 +100,8 @@ const sendFriendRequest = async (req, res) => {
     await user.save();
     await friend.save();
 
+    await createNotification(friendId, userId, 'friend_request');
+
     res.json({ message: 'Friend request sent successfully' });
   } catch (error) {
     console.error('SendFriendRequest error:', error);
@@ -128,6 +133,8 @@ const acceptFriendRequest = async (req, res) => {
 
     await user.save();
     await friend.save();
+
+    await createNotification(friendId, userId, 'friend_accept');
 
     res.json({ message: 'Friend request accepted' });
   } catch (error) {
@@ -241,6 +248,44 @@ const toggleSavePost = async (req, res) => {
   }
 };
 
+const getMutualFriends = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    const targetUser = await User.findById(req.params.id);
+
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    const currentFriends = currentUser.friends.map(id => id.toString());
+    const targetFriends = targetUser.friends.map(id => id.toString());
+
+    const mutualIds = currentFriends.filter(id => targetFriends.includes(id));
+
+    const mutualFriends = await User.find({ _id: { $in: mutualIds } })
+      .select('name profilePicture');
+
+    res.json(mutualFriends);
+  } catch (error) {
+    console.error('GetMutualFriends error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // In a full implementation, you would also delete posts, comments, likes, and friend refs
+    // For MVP, just delete the user document
+    await User.findByIdAndDelete(req.user.id);
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('DeleteAccount error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getUser,
   getAllUsers,
@@ -252,4 +297,6 @@ module.exports = {
   getSuggestedFriends,
   searchUsers,
   toggleSavePost,
+  getMutualFriends,
+  deleteAccount,
 };

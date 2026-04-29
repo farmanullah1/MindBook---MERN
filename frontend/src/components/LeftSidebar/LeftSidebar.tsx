@@ -12,9 +12,10 @@ const LeftSidebar: React.FC = () => {
   const mainLinks = [
     { icon: <FiHome size={20} />, label: 'Home', to: '/' },
     { icon: <FiUsers size={20} />, label: 'Friends', to: '/' },
+    { icon: <FiUsers size={20} />, label: 'Groups', to: '/groups' },
     { icon: <FiBookmark size={20} />, label: 'Saved', to: '/' },
     { icon: <FiFlag size={20} />, label: 'Pages', to: '/' },
-    { icon: <FiCalendar size={20} />, label: 'Events', to: '/' },
+    { icon: <FiCalendar size={20} />, label: 'Events', to: '/events' },
   ];
 
   const moreLinks = [

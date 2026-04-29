@@ -35,14 +35,25 @@ const userSchema = new mongoose.Schema(
       default: '',
       maxlength: [200, 'Bio cannot exceed 200 characters'],
     },
-    city: {
-      type: String,
-      default: '',
+    location: {
+      city: { type: String, default: '' },
+      country: { type: String, default: '' },
     },
-    workplace: {
-      type: String,
-      default: '',
-    },
+    work: [
+      {
+        title: String,
+        company: String,
+        startYear: Number,
+        endYear: Number,
+      },
+    ],
+    education: [
+      {
+        school: String,
+        degree: String,
+        year: Number,
+      },
+    ],
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -73,6 +84,5 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.index({ email: 1 });
 
 module.exports = mongoose.model('User', userSchema);

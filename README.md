@@ -1,102 +1,55 @@
-# Minds Books
+# Minds Books | Premier Social Space 🌟
 
-Minds Books is a high-fidelity, fully responsive social media web application. It is a clone of Facebook's core mechanics and layout, uniquely branded with a rich Yellow/Gold color scheme. 
+Minds Books is a high-fidelity, fully responsive social media platform. Designed with a vibrant Yellow/Gold aesthetic, it offers a familiar Facebook-like experience but with a unique visual identity and optimized for performance.
 
-This project is built using the MERN stack (MongoDB, Express.js, React, Node.js) and features a modern UI/UX implementation.
+Built on the **MERN stack**, Minds Books provides a robust set of features for community building, content sharing, and real-time interaction.
 
-## Features (MVP)
-- **User Authentication:** Register and login with JWT (stored securely in `localStorage`).
-- **Post Management:** Create posts with text and image URLs.
-- **Engagement:** Like and comment on posts.
-- **News Feed:** View all posts sorted by the latest, featuring real-time feel via polling.
-- **Profile Page:** View user info, their posts, and update the bio.
-- **Friend System:** Send, accept, and decline friend requests, or remove friends.
-- **Responsive UI:** Fully responsive layout with a top navbar, left/right sidebars (desktop), and a central feed.
+## ✨ Core Features
 
-## Technology Stack
-- **Frontend:** React.js, Vite, TypeScript, React Router v6, Redux Toolkit, Axios.
-- **Backend:** Node.js, Express.js, MongoDB, Mongoose, JWT, bcryptjs.
-- **Styling:** Custom CSS with robust CSS variables representing a complete design system.
+- **24-Hour Stories:** Disappearing photo stories with full-screen viewer, auto-advancement, and management.
+- **Dynamic News Feed:** Intelligent feed with pagination/load-more functionality and interactive posts.
+- **Engagement System:** Real-time feel notifications for likes, comments, and friend activities.
+- **Friend Ecosystem:** Full friend request lifecycle (Send, Accept, Decline, Cancel) and mutual friend discovery.
+- **Groups & Events:** Dedicated hubs for community interaction and event planning (accessible via Navbar).
+- **Rich Profiles:** Personalized user profiles with cover photos, bios, work/education history, and post history.
+- **Smart Sidebars:** Quick access to contacts, friend suggestions, and trending topics.
+- **Mobile First:** Fully responsive design with optimized touch interactions and layouts.
 
----
+## 🛠️ Technology Stack
 
-## Project Structure
-
-```text
-Minds Books/
-├── backend/                  # Node.js + Express API
-│   ├── config/               # Database connection config
-│   ├── controllers/          # API route controllers
-│   ├── middleware/           # Custom middleware (auth)
-│   ├── models/               # Mongoose schemas (User, Post)
-│   ├── routes/               # Express routes
-│   ├── server.js             # Entry point
-│   ├── .env                  # Environment variables
-│   └── package.json
-└── frontend/                 # React + Vite application
-    ├── src/
-    │   ├── components/       # Reusable UI components
-    │   ├── pages/            # Page-level components
-    │   ├── services/         # API integration (Axios)
-    │   ├── store/            # Redux store and slices
-    │   ├── types/            # TypeScript interfaces
-    │   ├── utils/            # Helper functions
-    │   ├── App.tsx           # App routing and layout
-    │   ├── index.css         # Global design system & theme
-    │   └── main.tsx          # React entry point
-    ├── index.html            # HTML template
-    └── package.json
-```
+- **Frontend:** React 18, Vite, TypeScript, Redux Toolkit, React Router 6.
+- **Backend:** Node.js, Express, Mongoose (MongoDB), Multer (uploads).
+- **Authentication:** JWT with secure token management and protected routes.
+- **Design:** Custom CSS Variable-based design system for unified branding.
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-Make sure you have the following installed on your system:
-- [Node.js](https://nodejs.org/) (v16 or higher recommended)
-- [MongoDB](https://www.mongodb.com/try/download/community) (Running locally on `localhost:27017` or a MongoDB Atlas URI)
+- Node.js (v18+)
+- MongoDB (Local or Atlas)
 
-### 1. Setup Backend
+### 1. Backend Setup
+1. `cd backend`
+2. `npm install`
+3. Configure `.env` (Port, Mongo URI, JWT Secret)
+4. `npm run dev` (Runs on port 5000)
 
-1. Open a terminal and navigate to the backend folder:
-   ```bash
-   cd "Minds Books/backend"
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file (if not already present) using `.env.example` as a template:
-   ```bash
-   PORT=5000
-   MONGO_URI=mongodb://localhost:27017/minds_books
-   JWT_SECRET=minds_books_jwt_secret_key_2024_super_secure
-   NODE_ENV=development
-   ```
-4. Start the backend server:
-   ```bash
-   npm run dev
-   ```
-   *The server will start on `http://localhost:5000`.*
-
-### 2. Setup Frontend
-
-1. Open a new terminal window and navigate to the frontend folder:
-   ```bash
-   cd "Minds Books/frontend"
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   *The frontend will be available at `http://localhost:5173`.*
+### 2. Frontend Setup
+1. `cd frontend`
+2. `npm install`
+3. `npm run dev` (Runs on port 5173)
 
 ---
 
-## Design System Notes
-The UI relies heavily on global CSS variables defined in `frontend/src/index.css`. The primary brand color is `var(--brand-primary): #F7B928`. You can easily adjust the theme by modifying the variables in the `:root` pseudo-class.
+## 🎨 Design Philosophy
+Minds Books uses a "Gold Standard" design system. The primary palette revolves around:
+- **Brand Primary:** `#F7B928` (Vibrant Yellow)
+- **Brand Secondary:** `#FFD700`
+- **Surface:** Glassmorphism-inspired card layouts and subtle gradients.
+
+---
+
+## 📜 License
+Developed as a premium social media demonstration. All rights reserved.

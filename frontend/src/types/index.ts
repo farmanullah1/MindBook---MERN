@@ -5,8 +5,9 @@ export interface IUser {
   profilePicture: string;
   coverPicture: string;
   bio?: string;
-  city?: string;
-  workplace?: string;
+  location?: { city: string; country: string };
+  work?: { _id?: string; title: string; company: string; startYear?: number; endYear?: number }[];
+  education?: { _id?: string; school: string; degree: string; year?: number }[];
   savedPosts?: string[];
   friends: IUser[];
   friendRequests: IUser[];
@@ -22,9 +23,72 @@ export interface IComment {
   createdAt: string;
 }
 
+export interface INotification {
+  _id: string;
+  user: string;
+  fromUser: IUser;
+  type: 'like' | 'comment' | 'friend_request' | 'friend_accept';
+  post?: { _id: string; content: string };
+  text?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface IMessage {
+  _id: string;
+  sender: string;
+  receiver: string;
+  text: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface IConversation {
+  user: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
+  latestMessage: IMessage;
+  unreadCount: number;
+}
+
+export interface IStory {
+  _id: string;
+  user: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
+  image: string;
+  createdAt: string;
+}
+
+export interface IUserStoryGroup {
+  user: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
+  stories: IStory[];
+  latestUpdate: string;
+}
+
+export interface IGroup {
+  _id: string;
+  name: string;
+  description: string;
+  coverPhoto: string;
+  admin: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
+  members: Pick<IUser, '_id' | 'name' | 'profilePicture'>[];
+  privacy: 'public' | 'private';
+  createdAt: string;
+}
+
+export interface IEvent {
+  _id: string;
+  creator: Pick<IUser, '_id' | 'name' | 'profilePicture'>;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  coverImage: string;
+  attendees: Pick<IUser, '_id' | 'name' | 'profilePicture'>[];
+  createdAt: string;
+}
+
 export interface IPost {
   _id: string;
   user: IUser;
+  group?: IGroup;
   content: string;
   image: string;
   likes: string[];

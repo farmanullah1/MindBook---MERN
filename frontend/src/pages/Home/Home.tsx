@@ -4,13 +4,14 @@ import { fetchFeedPosts } from '../../store/slices/postsSlice';
 import Navbar from '../../components/Navbar/Navbar';
 import LeftSidebar from '../../components/LeftSidebar/LeftSidebar';
 import RightSidebar from '../../components/RightSidebar/RightSidebar';
+import StoriesFeed from '../../components/StoriesFeed/StoriesFeed';
 import CreatePost from '../../components/CreatePost/CreatePost';
 import Post from '../../components/Post/Post';
 import './Home.css';
 
 const Home: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { posts, loading } = useAppSelector((state) => state.posts);
+  const { posts, loading, currentPage, totalPages } = useAppSelector((state) => state.posts);
 
   React.useEffect(() => {
     dispatch(fetchFeedPosts(1));
@@ -31,6 +32,7 @@ const Home: React.FC = () => {
         <LeftSidebar />
         <main className="main-content">
           <div className="feed-container">
+            <StoriesFeed />
             <CreatePost />
 
             {loading && posts.length === 0 ? (
@@ -67,7 +69,20 @@ const Home: React.FC = () => {
                 </div>
               </div>
             ) : (
-              posts.map((post) => <Post key={post._id} post={post} />)
+              <>
+                {posts.map((post) => <Post key={post._id} post={post} />)}
+                {posts.length > 0 && currentPage < totalPages && (
+                  <div className="load-more-container">
+                    <button 
+                      className="btn btn-secondary btn-full" 
+                      onClick={() => dispatch(fetchFeedPosts(currentPage + 1))}
+                      disabled={loading}
+                    >
+                      {loading ? <div className="spinner small" /> : 'Load More'}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </main>

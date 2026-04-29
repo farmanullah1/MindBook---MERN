@@ -93,6 +93,10 @@
   display: inline-block;
 }
 
+.avatar-wrapper:hover .avatar-edit-actions {
+  opacity: 1 !important;
+}
+
 .profile-avatar-section .avatar-xl {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
