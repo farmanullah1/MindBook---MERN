@@ -1,0 +1,91 @@
+/* ===========================
+   Home Page Styles
+   =========================== */
+
+/* Skeleton Loading */
+.feed-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skeleton-post {
+  background: var(--card-background);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: 0 1px 2px var(--shadow-1);
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeleton-name {
+  height: 14px;
+  width: 140px;
+}
+
+.skeleton-time {
+  height: 10px;
+  width: 80px;
+}
+
+.skeleton-content {
+  height: 14px;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton-content.short {
+  width: 60%;
+}
+
+.skeleton-image {
+  height: 200px;
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+/* Empty State */
+.feed-empty {
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.feed-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.feed-empty-icon {
+  font-size: 48px;
+}
+
+.feed-empty h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.feed-empty p {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  max-width: 300px;
+}
