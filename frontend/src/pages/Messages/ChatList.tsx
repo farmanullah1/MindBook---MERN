@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * ChatList.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { IConversation } from '../../types';
 import { getInitials, formatTimeAgo } from '../../utils/helpers';
@@ -6,22 +15,19 @@ import './Messages.css';
 interface ChatListProps {
   conversations: IConversation[];
   activeId?: string;
+  currentUserId: string;
   onSelect: (conv: IConversation) => void;
   loading: boolean;
 }
 
-const ChatList: React.FC<ChatListProps> = ({ conversations, activeId, onSelect, loading }) => {
+const ChatList: React.FC<ChatListProps> = ({ conversations, activeId, currentUserId, onSelect, loading }) => {
   if (loading) return <div className="chat-list-loading">Loading chats...</div>;
 
   return (
     <div className="chat-list">
       {conversations.map((conv) => {
-        const otherParticipant = conv.participants.find(p => p._id !== activeId); // This logic needs the current user id
-        // Actually, let's pass current user id too, or just use the first non-me participant
-        // For simplicity in this component, we'll assume the caller handled finding 'the other person' if it's not a group.
-        
-        // Let's refine the "other participant" logic by passing it from parent or using a hook.
-        // For now, let's just show the first participant that isn't the logged-in user.
+        const otherParticipant = conv.participants.find(p => p._id !== currentUserId);
+        const displayUser = conv.isGroup ? null : otherParticipant;
         
         return (
           <div 
@@ -34,19 +40,19 @@ const ChatList: React.FC<ChatListProps> = ({ conversations, activeId, onSelect, 
                 <div className="group-avatar-stack">👥</div>
               ) : (
                 <>
-                  {conv.participants[0]?.profilePicture ? (
-                    <img src={conv.participants[0].profilePicture} alt="Avatar" />
+                  {displayUser?.profilePicture ? (
+                    <img src={displayUser.profilePicture} alt="Avatar" />
                   ) : (
-                    <div className="avatar-placeholder">{getInitials(conv.participants[0]?.name || 'User')}</div>
+                    <div className="avatar-placeholder">{getInitials(displayUser?.name || 'User')}</div>
                   )}
-                  {conv.participants[0]?.isOnline && <div className="online-indicator" />}
+                  {displayUser?.isOnline && <div className="online-indicator" />}
                 </>
               )}
             </div>
             <div className="chat-item-info">
               <div className="chat-item-top">
                 <span className="chat-item-name">
-                  {conv.isGroup ? conv.groupName : conv.participants[0]?.name}
+                  {conv.isGroup ? conv.groupName : displayUser?.name}
                 </span>
                 <span className="chat-item-time">
                   {conv.lastMessage ? formatTimeAgo(conv.lastMessage.createdAt) : ''}

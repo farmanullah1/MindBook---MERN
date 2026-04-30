@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * groupController.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const Group = require('../models/Group');
 const Post = require('../models/Post');
 const User = require('../models/User');
@@ -383,17 +392,17 @@ module.exports = {
   manageMember,
   pinPost,
   unpinPost,
-  getDiscoverGroups
-};
-exports.getGroupMedia = async (req, res) => {
-  try {
-    const posts = await Post.find({ 
-      group: req.params.id, 
-      mediaUrl: { $ne: '' } 
-    }).select('mediaUrl mediaType createdAt');
-    
-    res.status(200).json(posts);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  getDiscoverGroups,
+  getGroupMedia: async (req, res) => {
+    try {
+      const posts = await Post.find({ 
+        group: req.params.id, 
+        mediaUrl: { $ne: '' } 
+      }).select('mediaUrl mediaType createdAt');
+      
+      res.status(200).json(posts);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
   }
 };

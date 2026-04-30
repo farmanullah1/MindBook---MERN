@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * RightSidebar.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { FiSearch, FiUserPlus, FiCheck, FiX } from 'react-icons/fi';
 import { useAppSelector } from '../../store/hooks';

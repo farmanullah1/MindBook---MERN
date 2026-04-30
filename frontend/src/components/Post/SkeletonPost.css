@@ -1,0 +1,101 @@
+/*
+ * CodeDNA
+ * SkeletonPost.css — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
+.skeleton-post {
+  padding: var(--s-4);
+  margin-bottom: var(--s-4);
+  border: var(--glass-border);
+  background: var(--bg-card);
+}
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.skeleton-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
+.skeleton-name {
+  width: 120px;
+  height: 14px;
+}
+
+.skeleton-time {
+  width: 60px;
+  height: 10px;
+}
+
+.skeleton-body {
+  margin-bottom: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.skeleton-line {
+  width: 100%;
+  height: 12px;
+}
+
+.skeleton-short {
+  width: 60%;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 300px;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--s-4);
+}
+
+.skeleton-footer {
+  display: flex;
+  justify-content: space-around;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--divider-color);
+}
+
+.skeleton-button {
+  width: 80px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-hover) 25%,
+    var(--bg-input) 50%,
+    var(--bg-hover) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite linear;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

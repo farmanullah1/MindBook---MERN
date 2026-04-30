@@ -1,5 +1,14 @@
+/**
+ * CodeDNA
+ * LeftSidebar.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiHome, FiUsers, FiBookmark, FiCalendar, FiFlag, FiShoppingBag, FiChevronDown, FiLogOut } from 'react-icons/fi';
 import { useAppSelector, useAppDispatch } from '../../store/hooks';
 import { logout } from '../../store/slices/authSlice';
@@ -9,6 +18,7 @@ import './LeftSidebar.css';
 const LeftSidebar: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAppSelector((state) => state.auth);
   const [showMore, setShowMore] = React.useState(false);
 
@@ -22,7 +32,8 @@ const LeftSidebar: React.FC = () => {
   ];
 
   const moreLinks = [
-    { icon: <FiShoppingBag size={20} />, label: 'Marketplace', to: '/' },
+    { icon: <FiShoppingBag size={20} />, label: 'Marketplace', to: '/marketplace' },
+    { icon: <FiFlag size={20} />, label: 'Memories', to: '/memories' },
   ];
 
   const handleLogout = () => {
@@ -48,7 +59,12 @@ const LeftSidebar: React.FC = () => {
         {/* Navigation Links */}
         <nav className="sidebar-nav">
           {mainLinks.map((link) => (
-            <Link key={link.label} to={link.to} className="sidebar-link" id={`sidebar-${link.label.toLowerCase()}`}>
+            <Link 
+              key={link.label} 
+              to={link.to} 
+              className={`sidebar-link ${location.pathname === link.to ? 'active' : ''}`} 
+              id={`sidebar-${link.label.toLowerCase()}`}
+            >
               <span className="sidebar-link-icon">{link.icon}</span>
               <span className="sidebar-link-label">{link.label}</span>
             </Link>
@@ -56,7 +72,12 @@ const LeftSidebar: React.FC = () => {
 
           {showMore &&
             moreLinks.map((link) => (
-              <Link key={link.label} to={link.to} className="sidebar-link">
+              <Link 
+                key={link.label} 
+                to={link.to} 
+                className={`sidebar-link ${location.pathname === link.to ? 'active' : ''}`} 
+                id={`sidebar-${link.label.toLowerCase()}`}
+              >
                 <span className="sidebar-link-icon">{link.icon}</span>
                 <span className="sidebar-link-label">{link.label}</span>
               </Link>

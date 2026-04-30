@@ -1,43 +1,30 @@
-/* ===========================
-   Create Post Styles
-   =========================== */
-.create-post {
-  padding: var(--space-3) var(--space-4);
+/*
+ * CodeDNA
+ * CreatePost.css — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
+.create-post.card {
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--s-4);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
 }
 
 .create-post-top {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .create-post-avatar {
   flex-shrink: 0;
-}
-
-.create-post-input {
-  flex: 1;
-  background: var(--comment-background);
-  border: none;
-  border-radius: 20px;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-md);
-  color: var(--text-primary);
-  resize: none;
-  min-height: 40px;
-  max-height: 200px;
-  line-height: 1.4;
-  transition: background var(--transition-fast);
-  font-family: inherit;
-}
-
-.create-post-input:focus {
-  background: var(--card-background);
-  outline: 2px solid var(--brand-primary-light);
-}
-
-.create-post-input::placeholder {
-  color: var(--text-secondary);
 }
 
 .create-post-input-container {
@@ -47,180 +34,180 @@
 }
 
 .selected-feeling {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-1);
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-}
-
-.selected-feeling button {
-  background: none;
-  border: none;
+  gap: 8px;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 2px;
+  background: var(--bg-hover);
+  padding: 4px 8px;
+  border-radius: var(--radius-full);
+  margin-bottom: 4px;
+  width: fit-content;
 }
 
-.location-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  background: var(--comment-background);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--divider-color);
-}
-
-.location-input {
-  flex: 1;
-  background: transparent;
+.create-post-input {
+  width: 100%;
   border: none;
-  font-size: var(--font-size-sm);
+  background: var(--bg-input);
+  border-radius: var(--radius-xl);
+  padding: 10px 16px;
+  font-size: 1rem;
   color: var(--text-primary);
-  padding: var(--space-1) 0;
+  resize: none;
+  min-height: 40px;
+  transition: var(--t-fast);
 }
 
-.location-input:focus {
-  outline: none;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
+.create-post-input:focus {
+  background: var(--bg-card);
+  box-shadow: inset 0 0 0 1px var(--divider-color);
 }
 
 .create-post-media {
-  margin-top: var(--space-3);
+  margin: 12px 0;
 }
 
 .create-post-image-preview {
   position: relative;
   border-radius: var(--radius-md);
   overflow: hidden;
-  max-height: 300px;
+  border: var(--glass-border);
+  background: var(--bg-input);
 }
 
-.create-post-image-preview img,
-.create-post-image-preview video {
+.create-post-image-preview img, .create-post-image-preview video {
   width: 100%;
-  max-height: 300px;
-  object-fit: cover;
+  max-height: 400px;
+  object-fit: contain;
 }
 
 .remove-image-btn {
   position: absolute;
   top: 8px;
   right: 8px;
+  width: 32px;
+  height: 32px;
   background: rgba(0, 0, 0, 0.6);
   color: white;
-  border: none;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
+  backdrop-filter: blur(4px);
+  transition: var(--t-fast);
+}
+
+.remove-image-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.location-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-input);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+
+.location-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
 }
 
 .feeling-picker {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  padding: var(--space-3);
-  background: var(--comment-background);
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: var(--glass-border);
   border-radius: var(--radius-md);
-  border: 1px solid var(--divider-color);
+  margin-bottom: 12px;
+  animation: slideUp 0.3s var(--t-bounce);
 }
 
 .feeling-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
+  gap: 8px;
+  padding: 8px;
   border-radius: var(--radius-sm);
-  background: var(--card-background);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: var(--t-fast);
 }
 
 .feeling-item:hover {
-  background: var(--hover-overlay);
-  border-color: var(--brand-primary-light);
+  background: var(--bg-hover);
 }
 
 .feeling-emoji {
-  font-size: 1.5rem;
+  font-size: 20px;
 }
 
 .feeling-name {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .create-post-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
+  padding-top: 12px;
   border-top: 1px solid var(--divider-color);
 }
 
 .create-post-actions {
   display: flex;
-  gap: var(--space-1);
-  flex: 1;
+  gap: 4px;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  gap: 8px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
-  background: none;
-  border: none;
   color: var(--text-secondary);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: var(--t-fast);
 }
 
 .action-btn:hover {
-  background: var(--hover-overlay);
+  background: var(--bg-hover);
+}
+
+.action-icon {
+  transition: var(--t-fast);
+}
+
+.action-btn:hover .action-icon {
+  transform: scale(1.15);
 }
 
 .text-success { color: #45bd62; }
-.text-danger { color: #e7413a; }
+.text-danger { color: #f3425f; }
 .text-warning { color: #f7b928; }
 
-@media (max-width: 600px) {
-  .create-post-action span {
+/* Responsive */
+@media (max-width: 768px) {
+  .create-post.card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
+  .action-btn span {
     display: none;
   }
-
-  .create-post-action {
-    padding: var(--space-2);
-  }
-
-  .hide-mobile {
-    display: none;
+  
+  .action-btn {
+    padding: 8px;
   }
 }

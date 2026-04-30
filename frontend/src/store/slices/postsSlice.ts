@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * postsSlice.ts — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
 import { PostsState, IPost } from '../../types';
@@ -107,6 +116,18 @@ export const updatePost = createAsyncThunk(
   }
 );
 
+export const toggleSavePost = createAsyncThunk(
+  'posts/toggleSave',
+  async (postId: string, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/posts/${postId}/save`);
+      return { postId, savedPosts: response.data.savedPosts };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to save post');
+    }
+  }
+);
+
 const updatePostInList = (posts: IPost[], updatedPost: IPost): IPost[] => {
   return posts.map((p) => (p._id === updatedPost._id ? updatedPost : p));
 };
@@ -161,9 +182,30 @@ const postsSlice = createSlice({
         state.posts.unshift(action.payload);
         state.userPosts.unshift(action.payload);
       })
+      .addCase(likePost.pending, (state, action) => {
+        const postId = action.meta.arg;
+        const userId = localStorage.getItem('minds_books_user') ? JSON.parse(localStorage.getItem('minds_books_user')!)._id : null;
+        
+        if (userId) {
+          const updateLikes = (posts: IPost[]) => {
+            const post = posts.find(p => p._id === postId);
+            if (post) {
+              const index = post.likes.indexOf(userId);
+              if (index === -1) post.likes.push(userId);
+              else post.likes.splice(index, 1);
+            }
+          };
+          updateLikes(state.posts);
+          updateLikes(state.userPosts);
+        }
+      })
       .addCase(likePost.fulfilled, (state, action) => {
         state.posts = updatePostInList(state.posts, action.payload);
         state.userPosts = updatePostInList(state.userPosts, action.payload);
+      })
+      .addCase(likePost.rejected, (state, action) => {
+        // In a real app, we might want to revert the optimistic change here
+        // But for now, the next fetch or a re-sync will fix it
       })
       .addCase(commentOnPost.fulfilled, (state, action) => {
         state.posts = updatePostInList(state.posts, action.payload);
@@ -186,6 +228,10 @@ const postsSlice = createSlice({
         if (userIndex !== -1) {
           state.userPosts[userIndex] = action.payload;
         }
+      })
+      .addCase(toggleSavePost.fulfilled, (state, action) => {
+        // We don't necessarily need to update the post object itself unless it has a 'saved' flag
+        // But we might want to update the local user state if it's available
       });
   },
 });

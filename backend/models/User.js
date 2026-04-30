@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * User.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
@@ -54,6 +63,22 @@ const userSchema = new mongoose.Schema(
         year: Number,
       },
     ],
+    relationshipStatus: {
+      type: String,
+      enum: ['Single', 'In a relationship', 'Engaged', 'Married', 'It\'s complicated', 'In an open relationship', 'Widowed', 'Separated', 'Divorced', ''],
+      default: '',
+    },
+    hometown: {
+      type: String,
+      default: '',
+    },
+    birthdate: {
+      type: Date,
+    },
+    website: {
+      type: String,
+      default: '',
+    },
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -82,6 +107,12 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+      },
+    ],
+    conversations: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Conversation',
       },
     ],
     lastActive: {

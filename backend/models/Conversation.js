@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * Conversation.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const mongoose = require('mongoose');
 
 const conversationSchema = new mongoose.Schema(
@@ -16,8 +25,14 @@ const conversationSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ['accepted', 'pending', 'spam'],
-      default: 'accepted' // Defaulting to accepted for now, logic will handle pending
+      default: 'accepted'
     },
+    messageRequestStatus: {
+      type: String,
+      enum: ['pending', 'accepted', 'declined'],
+      default: 'accepted'
+    },
+    deletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     updatedAt: { type: Date, default: Date.now }
   },
   { timestamps: true }

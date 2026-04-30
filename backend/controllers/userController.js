@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * userController.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const User = require('../models/User');
 const { createNotification } = require('./notificationController');
 
@@ -193,6 +202,52 @@ const removeFriend = async (req, res) => {
   }
 };
 
+const getFriends = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate('friends', 'name profilePicture isOnline lastActive');
+    res.json(user.friends);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getFriendRequests = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('friendRequests', 'name profilePicture')
+      .populate('sentFriendRequests', 'name profilePicture');
+    
+    res.json({
+      incoming: user.friendRequests,
+      outgoing: user.sentFriendRequests
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const cancelFriendRequest = async (req, res) => {
+  try {
+    const { friendId } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+
+    if (!friend) return res.status(404).json({ message: 'User not found' });
+
+    user.sentFriendRequests = user.sentFriendRequests.filter((id) => id.toString() !== friendId);
+    friend.friendRequests = friend.friendRequests.filter((id) => id.toString() !== userId);
+
+    await user.save();
+    await friend.save();
+
+    res.json({ message: 'Friend request cancelled' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 const getSuggestedFriends = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -203,9 +258,31 @@ const getSuggestedFriends = async (req, res) => {
       ...user.friendRequests.map((f) => f.toString()),
     ];
 
-    const suggestions = await User.find({ _id: { $nin: excludeIds } })
+    // Smarter suggestions: Friends of friends
+    const friendsOfFriends = await User.find({
+      _id: { $nin: excludeIds },
+      friends: { $in: user.friends }
+    })
+    .select('name profilePicture friends')
+    .limit(10);
+
+    // Add mutual friends count
+    const suggestions = friendsOfFriends.map(suggestion => {
+      const mutualCount = suggestion.friends.filter(id => user.friends.includes(id)).length;
+      const { friends, ...data } = suggestion.toObject();
+      return { ...data, mutualFriendsCount: mutualCount };
+    });
+
+    // If not enough suggestions, add random users
+    if (suggestions.length < 5) {
+      const randomUsers = await User.find({
+        _id: { $nin: [...excludeIds, ...suggestions.map(s => s._id.toString())] }
+      })
       .select('name profilePicture')
-      .limit(10);
+      .limit(10 - suggestions.length);
+      
+      suggestions.push(...randomUsers.map(u => ({ ...u.toObject(), mutualFriendsCount: 0 })));
+    }
 
     res.json(suggestions);
   } catch (error) {
@@ -218,9 +295,19 @@ const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
     if (!q) return res.json([]);
-    const users = await User.find({ name: { $regex: q, $options: 'i' } })
-      .select('name profilePicture')
-      .limit(10);
+
+    const users = await User.find({
+      $and: [
+        { _id: { $ne: req.user.id } },
+        {
+          $or: [
+            { name: { $regex: q, $options: 'i' } },
+            { email: { $regex: q, $options: 'i' } }
+          ]
+        }
+      ]
+    }).select('name profilePicture bio');
+
     res.json(users);
   } catch (error) {
     console.error('SearchUsers error:', error);
@@ -228,40 +315,17 @@ const searchUsers = async (req, res) => {
   }
 };
 
-const toggleSavePost = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    const postId = req.params.postId;
-
-    if (user.savedPosts.includes(postId)) {
-      user.savedPosts = user.savedPosts.filter((id) => id.toString() !== postId);
-    } else {
-      user.savedPosts.push(postId);
-    }
-    await user.save();
-    
-    // Return updated user object
-    res.json(user);
-  } catch (error) {
-    console.error('ToggleSavePost error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
 const getMutualFriends = async (req, res) => {
   try {
+    const { id } = req.params;
     const currentUser = await User.findById(req.user.id);
-    const targetUser = await User.findById(req.params.id);
+    const otherUser = await User.findById(id).populate('friends', 'name profilePicture');
 
-    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+    if (!otherUser) return res.status(404).json({ message: 'User not found' });
 
-    const currentFriends = currentUser.friends.map(id => id.toString());
-    const targetFriends = targetUser.friends.map(id => id.toString());
-
-    const mutualIds = currentFriends.filter(id => targetFriends.includes(id));
-
-    const mutualFriends = await User.find({ _id: { $in: mutualIds } })
-      .select('name profilePicture');
+    const mutualFriends = otherUser.friends.filter(friend => 
+      currentUser.friends.includes(friend._id.toString())
+    );
 
     res.json(mutualFriends);
   } catch (error) {
@@ -270,15 +334,28 @@ const getMutualFriends = async (req, res) => {
   }
 };
 
+const getUserMedia = async (req, res) => {
+  try {
+    const Post = require('../models/Post');
+    const posts = await Post.find({
+      user: req.params.id,
+      $or: [
+        { image: { $ne: '' } },
+        { video: { $ne: '' } }
+      ]
+    }).select('image video createdAt');
+
+    res.json(posts);
+  } catch (error) {
+    console.error('GetUserData error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 const deleteAccount = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    // In a full implementation, you would also delete posts, comments, likes, and friend refs
-    // For MVP, just delete the user document
     await User.findByIdAndDelete(req.user.id);
-
+    // Ideally cleanup posts, comments, etc.
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {
     console.error('DeleteAccount error:', error);
@@ -293,10 +370,13 @@ module.exports = {
   sendFriendRequest,
   acceptFriendRequest,
   declineFriendRequest,
+  cancelFriendRequest,
   removeFriend,
+  getFriends,
+  getFriendRequests,
   getSuggestedFriends,
   searchUsers,
-  toggleSavePost,
   getMutualFriends,
+  getUserMedia,
   deleteAccount,
 };

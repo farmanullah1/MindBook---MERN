@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * authSlice.ts — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import api from '../../services/api';
 import { AuthState, IUser, LoginCredentials, RegisterCredentials } from '../../types';
@@ -41,19 +50,12 @@ export const fetchCurrentUser = createAsyncThunk('auth/me', async (_, { rejectWi
     const response = await api.get('/auth/me');
     return response.data;
   } catch (error: any) {
-    localStorage.removeItem('token');
+    localStorage.removeItem('minds_books_token');
     return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
   }
 });
 
-export const toggleSavePost = createAsyncThunk('auth/savePost', async (postId: string, { rejectWithValue }) => {
-  try {
-    const response = await api.post(`/users/save-post/${postId}`);
-    return response.data.savedPosts || response.data; // Ensure we get the updated user or savedPosts array
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to save post');
-  }
-});
+
 
 const authSlice = createSlice({
   name: 'auth',
@@ -123,14 +125,10 @@ const authSlice = createSlice({
         localStorage.removeItem('minds_books_token');
         localStorage.removeItem('minds_books_user');
       })
-      .addCase(toggleSavePost.fulfilled, (state, action) => {
+      .addCase('posts/toggleSave/fulfilled', (state, action: any) => {
         if (state.user) {
-          // Depending on API, action.payload might be full user or array
-          if (Array.isArray(action.payload)) {
-             state.user.savedPosts = action.payload;
-          } else {
-             state.user.savedPosts = action.payload.savedPosts;
-          }
+          state.user.savedPosts = action.payload.savedPosts;
+          localStorage.setItem('minds_books_user', JSON.stringify(state.user));
         }
       });
   },

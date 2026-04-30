@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * conversationController.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/User');
@@ -148,6 +157,7 @@ const acceptRequest = async (req, res) => {
     }
 
     conversation.status = 'accepted';
+    conversation.messageRequestStatus = 'accepted';
     await conversation.save();
 
     res.json({ message: 'Request accepted' });
@@ -177,11 +187,228 @@ const deleteConversation = async (req, res) => {
   }
 };
 
+const getSuggestions = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate('friends', 'name profilePicture isOnline lastActive');
+    
+    // Get all conversation participant IDs for the current user
+    const existingConvs = await Conversation.find({
+      participants: req.user.id,
+      isGroup: false
+    });
+    
+    const chattedUserIds = existingConvs.reduce((acc, conv) => {
+      const otherId = conv.participants.find(p => p.toString() !== req.user.id);
+      if (otherId) acc.push(otherId.toString());
+      return acc;
+    }, []);
+
+    // Filter friends who don't have an active conversation
+    let suggestedUsers = user.friends.filter(friend => 
+      !chattedUserIds.includes(friend._id.toString()) && 
+      !user.blockedUsers.includes(friend._id)
+    );
+
+    // If fewer than 10 direct friends, suggest mutual friends (friends of friends)
+    if (suggestedUsers.length < 10) {
+      const friendOfFriends = await User.find({
+        friends: { $in: user.friends.map(f => f._id) },
+        _id: { $nin: [req.user.id, ...user.friends.map(f => f._id), ...chattedUserIds] },
+        blockedUsers: { $ne: req.user.id }
+      })
+      .select('name profilePicture isOnline lastActive')
+      .limit(10 - suggestedUsers.length);
+      
+      suggestedUsers = [...suggestedUsers, ...friendOfFriends];
+    }
+
+    res.json(suggestedUsers.slice(0, 15));
+  } catch (error) {
+    console.error('GetSuggestions error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getConversationWithUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (userId === req.user.id) {
+      return res.status(400).json({ message: 'Cannot chat with yourself' });
+    }
+
+    let conversation = await Conversation.findOne({
+      isGroup: false,
+      participants: { $all: [req.user.id, userId], $size: 2 }
+    })
+    .populate('participants', 'name profilePicture isOnline lastActive')
+    .populate('lastMessage.sender', 'name');
+
+    if (!conversation) {
+      // Create new conversation
+      const user = await User.findById(req.user.id);
+      const recipient = await User.findById(userId);
+      
+      if (!recipient || !recipient.isActive) {
+        return res.status(400).json({ message: 'User account is deactivated' });
+      }
+
+      if (user.blockedUsers.includes(userId) || recipient.blockedUsers.includes(req.user.id)) {
+        return res.status(403).json({ message: 'Cannot message this user' });
+      }
+
+      const isFriend = user.friends.includes(userId);
+      const status = isFriend ? 'accepted' : 'pending';
+
+      conversation = await Conversation.create({
+        participants: [req.user.id, userId],
+        status
+      });
+
+      conversation = await Conversation.findById(conversation._id)
+        .populate('participants', 'name profilePicture isOnline lastActive');
+    }
+
+    res.json(conversation);
+  } catch (error) {
+    console.error('GetConversationWithUser error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const addMember = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    
+    const conversation = await Conversation.findById(id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+    if (conversation.groupAdmin.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only admin can add members' });
+    }
+
+    await Conversation.findByIdAndUpdate(id, {
+      $addToSet: { participants: userId, groupMembers: userId }
+    });
+
+    // Create notification
+    const { createNotification } = require('./notificationController');
+    await createNotification(
+      userId,
+      req.user.id,
+      'group_invite', // You can use a specific type or 'mention'
+      id,
+      `added you to the group: ${conversation.groupName}`
+    );
+
+    res.json({ message: 'Member added' });
+  } catch (error) {
+    console.error('AddMember error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const removeMember = async (req, res) => {
+  try {
+    const { id, userId } = req.params;
+    
+    const conversation = await Conversation.findById(id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+    if (conversation.groupAdmin.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only admin can remove members' });
+    }
+
+    await Conversation.findByIdAndUpdate(id, {
+      $pull: { participants: userId, groupMembers: userId }
+    });
+
+    res.json({ message: 'Member removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const changeAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    
+    const conversation = await Conversation.findById(id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+    if (conversation.groupAdmin.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only current admin can change admin' });
+    }
+
+    await Conversation.findByIdAndUpdate(id, { groupAdmin: userId });
+
+    res.json({ message: 'Admin changed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const updateGroupIcon = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { groupIcon } = req.body;
+    
+    const conversation = await Conversation.findById(id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+    if (conversation.groupAdmin.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only admin can change icon' });
+    }
+
+    await Conversation.findByIdAndUpdate(id, { groupIcon });
+
+    res.json({ message: 'Group icon updated' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const leaveGroup = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const conversation = await Conversation.findById(id);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    if (!conversation.participants.includes(req.user.id)) {
+      return res.status(400).json({ message: 'Not a member of this group' });
+    }
+
+    // If admin leaves, assign new admin if possible
+    if (conversation.groupAdmin.toString() === req.user.id) {
+      const nextMember = conversation.participants.find(p => p.toString() !== req.user.id);
+      if (nextMember) {
+        conversation.groupAdmin = nextMember;
+      } else {
+        // No one left?
+      }
+    }
+
+    conversation.participants.pull(req.user.id);
+    conversation.groupMembers.pull(req.user.id);
+    
+    await conversation.save();
+    res.json({ message: 'Left group successfully' });
+  } catch (error) {
+    console.error('LeaveGroup error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   getConversations,
   createConversation,
   getMessages,
   markAsRead,
   acceptRequest,
-  deleteConversation
+  deleteConversation,
+  getSuggestions,
+  getConversationWithUser,
+  addMember,
+  removeMember,
+  changeAdmin,
+  leaveGroup,
+  updateGroupIcon
 };

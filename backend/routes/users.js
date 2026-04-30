@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * users.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
@@ -9,23 +18,31 @@ const {
   acceptFriendRequest,
   declineFriendRequest,
   removeFriend,
+  getFriends,
+  getFriendRequests,
   getSuggestedFriends,
   searchUsers,
-  toggleSavePost,
   getMutualFriends,
+  getUserMedia,
   deleteAccount,
+  cancelFriendRequest,
 } = require('../controllers/userController');
+const { toggleSavePost } = require('../controllers/postController');
 
+router.get('/friends', auth, getFriends);
+router.get('/friend-requests', auth, getFriendRequests);
 router.get('/search', auth, searchUsers);
 router.get('/suggestions', auth, getSuggestedFriends);
 router.get('/', auth, getAllUsers);
 router.get('/:id', auth, getUser);
 router.get('/:id/mutual-friends', auth, getMutualFriends);
-router.put('/profile', auth, updateUser); // New route for updating own profile
-router.put('/:id', auth, updateUser); // Keep old one for compatibility if needed
+router.get('/:id/media', auth, getUserMedia);
+router.put('/profile', auth, updateUser);
+router.put('/:id', auth, updateUser);
 router.post('/friend-request', auth, sendFriendRequest);
 router.post('/friend-request/accept', auth, acceptFriendRequest);
 router.post('/friend-request/decline', auth, declineFriendRequest);
+router.post('/friend-request/cancel', auth, cancelFriendRequest);
 router.post('/unfriend', auth, removeFriend);
 router.post('/save-post/:postId', auth, toggleSavePost);
 router.delete('/account', auth, deleteAccount);

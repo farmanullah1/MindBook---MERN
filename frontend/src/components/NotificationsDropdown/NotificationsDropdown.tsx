@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * NotificationsDropdown.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { FiBell, FiCheck } from 'react-icons/fi';
 import { Link } from 'react-router-dom';

@@ -1,9 +1,35 @@
+/**
+ * CodeDNA
+ * messageController.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 
 const sendMessage = async (req, res) => {
   try {
-    const { conversationId, text, mediaUrl, mediaType, repliedTo } = req.body;
+    const { conversationId, text, mediaUrl, mediaType, mediaMetadata, repliedTo } = req.body;
+
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) return res.status(404).json({ message: 'Conversation not found' });
+
+    // One-message limit for pending requests from non-friends
+    if (conversation.messageRequestStatus === 'pending') {
+      const messageCount = await Message.countDocuments({ 
+        conversation: conversationId, 
+        sender: req.user.id 
+      });
+      if (messageCount >= 1) {
+        return res.status(403).json({ 
+          message: 'MESSAGE_LIMIT_REACHED', 
+          error: 'Waiting for recipient to accept your message request. Only one message can be sent until then.' 
+        });
+      }
+    }
 
     const message = await Message.create({
       conversation: conversationId,
@@ -11,19 +37,19 @@ const sendMessage = async (req, res) => {
       text,
       mediaUrl,
       mediaType,
+      mediaMetadata,
       repliedTo,
       readBy: [req.user.id]
     });
 
     // Update conversation last message
-    await Conversation.findByIdAndUpdate(conversationId, {
-      lastMessage: {
-        text: text || `Sent an ${mediaType}`,
-        sender: req.user.id,
-        createdAt: new Date()
-      },
-      updatedAt: new Date()
-    });
+    conversation.lastMessage = {
+      text: text || `Sent an ${mediaType}`,
+      sender: req.user.id,
+      createdAt: new Date()
+    };
+    conversation.updatedAt = new Date();
+    await conversation.save();
 
     const populatedMessage = await Message.findById(message._id)
       .populate('sender', 'name profilePicture')
@@ -32,6 +58,25 @@ const sendMessage = async (req, res) => {
     res.status(201).json(populatedMessage);
   } catch (error) {
     console.error('SendMessage error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const uploadMessageMedia = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const mediaUrl = `/uploads/${req.file.filename}`;
+    const mediaMetadata = {
+      fileName: req.file.originalname,
+      fileSize: req.file.size
+    };
+
+    res.json({ mediaUrl, mediaMetadata });
+  } catch (error) {
+    console.error('UploadMessageMedia error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -84,8 +129,63 @@ const deleteForEveryone = async (req, res) => {
   }
 };
 
+const forwardMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { conversationId } = req.body;
+    
+    const originalMessage = await Message.findById(messageId);
+    if (!originalMessage) return res.status(404).json({ message: 'Message not found' });
+
+    const message = await Message.create({
+      conversation: conversationId,
+      sender: req.user.id,
+      text: originalMessage.text,
+      mediaUrl: originalMessage.mediaUrl,
+      mediaType: originalMessage.mediaType,
+      readBy: [req.user.id]
+    });
+
+    // Update conversation last message
+    await Conversation.findByIdAndUpdate(conversationId, {
+      lastMessage: {
+        text: message.text || `Sent an ${message.mediaType}`,
+        sender: req.user.id,
+        createdAt: new Date()
+      },
+      updatedAt: new Date()
+    });
+
+    const populatedMessage = await Message.findById(message._id)
+      .populate('sender', 'name profilePicture')
+      .populate('repliedTo');
+
+    res.status(201).json(populatedMessage);
+  } catch (error) {
+    console.error('ForwardMessage error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const markAsRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    await Message.updateMany(
+      { conversation: conversationId, sender: { $ne: req.user.id }, readBy: { $ne: req.user.id } },
+      { $addToSet: { readBy: req.user.id } }
+    );
+    res.json({ message: 'Messages marked as read' });
+  } catch (error) {
+    console.error('MarkAsRead error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   sendMessage,
   deleteMessage,
-  deleteForEveryone
+  deleteForEveryone,
+  forwardMessage,
+  markAsRead,
+  uploadMessageMedia
 };

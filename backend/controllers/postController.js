@@ -1,10 +1,19 @@
+/**
+ * CodeDNA
+ * postController.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const Post = require('../models/Post');
 const User = require('../models/User');
 const { createNotification } = require('./notificationController');
 
 const createPost = async (req, res) => {
   try {
-    const { content, image, video, location } = req.body;
+    const { content, image, video, location, feeling } = req.body;
 
     if (!content && !image && !video) {
       return res.status(400).json({ message: 'Post must have content, an image, or a video' });
@@ -16,6 +25,7 @@ const createPost = async (req, res) => {
       image: image || '',
       video: video || '',
       location: location || '',
+      feeling: feeling || '',
       group: req.body.group || null,
     });
 
@@ -39,20 +49,26 @@ const getFeedPosts = async (req, res) => {
     const currentUser = await User.findById(req.user.id);
     const feedUsers = [req.user.id, ...currentUser.friends];
 
-    const posts = await Post.find({ 
-      user: { $in: feedUsers },
-      group: null 
-    })
+    // Find groups the user is a member of
+    const Group = require('../models/Group');
+    const memberGroups = await Group.find({ members: req.user.id }).select('_id');
+    const groupIds = memberGroups.map(g => g._id);
+
+    const query = {
+      $or: [
+        { user: { $in: feedUsers }, group: null },
+        { group: { $in: groupIds } }
+      ]
+    };
+
+    const posts = await Post.find(query)
       .populate('user', 'name profilePicture')
       .populate('comments.user', 'name profilePicture')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Post.countDocuments({ 
-      user: { $in: feedUsers },
-      group: null 
-    });
+    const total = await Post.countDocuments(query);
 
     res.json({
       posts,
@@ -112,11 +128,12 @@ const updatePost = async (req, res) => {
       return res.status(403).json({ message: 'You can only edit your own posts' });
     }
 
-    const { content, image, video, location } = req.body;
+    const { content, image, video, location, feeling } = req.body;
     if (content !== undefined) post.content = content;
     if (image !== undefined) post.image = image;
     if (video !== undefined) post.video = video;
     if (location !== undefined) post.location = location;
+    if (feeling !== undefined) post.feeling = feeling;
 
     await post.save();
 
@@ -141,6 +158,14 @@ const deletePost = async (req, res) => {
 
     if (post.user.toString() !== req.user.id) {
       return res.status(403).json({ message: 'You can only delete your own posts' });
+    }
+
+    // If it's a group post, remove it from group's pinnedPosts if pinned
+    if (post.group) {
+      const Group = require('../models/Group');
+      await Group.findByIdAndUpdate(post.group, {
+        $pull: { pinnedPosts: post._id }
+      });
     }
 
     await Post.findByIdAndDelete(req.params.id);

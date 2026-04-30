@@ -1,3 +1,12 @@
+<!--
+  CodeDNA
+  README.md — core functionality
+  exports: none
+  used_by: internal
+  rules: Follow project conventions
+  agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+-->
+
 # MindBook | Premier Social Space 🌟
 
 MindBook is a high-fidelity, fully responsive social media platform. Designed with a vibrant Yellow/Gold aesthetic, it offers a familiar Facebook-like experience but with a unique visual identity and optimized for performance.

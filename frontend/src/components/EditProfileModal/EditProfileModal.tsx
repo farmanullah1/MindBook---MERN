@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * EditProfileModal.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { FiX, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { IUser } from '../../types';
@@ -23,6 +32,10 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onUp
   const [bio, setBio] = React.useState(user.bio || '');
   const [city, setCity] = React.useState(user.location?.city || '');
   const [country, setCountry] = React.useState(user.location?.country || '');
+  const [hometown, setHometown] = React.useState(user.hometown || '');
+  const [relationshipStatus, setRelationshipStatus] = React.useState(user.relationshipStatus || '');
+  const [website, setWebsite] = React.useState(user.website || '');
+  const [birthdate, setBirthdate] = React.useState(user.birthdate ? new Date(user.birthdate).toISOString().split('T')[0] : '');
 
   // Work & Education State
   const [work, setWork] = React.useState(user.work || []);
@@ -39,10 +52,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onUp
       const res = await api.put('/users/profile', {
         name,
         bio,
-        location: { city, country }
+        location: { city, country },
+        hometown,
+        relationshipStatus,
+        website,
+        birthdate
       });
       onUpdate(res.data);
-      dispatch(updateUserInState({ name, bio, location: { city, country } }));
+      dispatch(updateUserInState({ name, bio, location: { city, country }, hometown, relationshipStatus, website, birthdate }));
       setMessage('Profile updated successfully');
     } catch (err: any) {
       setMessage(err.response?.data?.message || 'Error updating profile');
@@ -146,6 +163,37 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ user, onClose, onUp
                 <div className="form-group">
                   <label>Country</label>
                   <input type="text" className="input-field" value={country} onChange={e => setCountry(e.target.value)} />
+                </div>
+              </div>
+              <div className="form-group-row">
+                <div className="form-group">
+                  <label>Hometown</label>
+                  <input type="text" className="input-field" value={hometown} onChange={e => setHometown(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label>Relationship Status</label>
+                  <select className="input-field" value={relationshipStatus} onChange={e => setRelationshipStatus(e.target.value)}>
+                    <option value="">Select Status</option>
+                    <option value="Single">Single</option>
+                    <option value="In a relationship">In a relationship</option>
+                    <option value="Engaged">Engaged</option>
+                    <option value="Married">Married</option>
+                    <option value="It's complicated">It's complicated</option>
+                    <option value="In an open relationship">In an open relationship</option>
+                    <option value="Widowed">Widowed</option>
+                    <option value="Separated">Separated</option>
+                    <option value="Divorced">Divorced</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group-row">
+                <div className="form-group">
+                  <label>Website</label>
+                  <input type="url" className="input-field" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://example.com" />
+                </div>
+                <div className="form-group">
+                  <label>Birthdate</label>
+                  <input type="date" className="input-field" value={birthdate} onChange={e => setBirthdate(e.target.value)} />
                 </div>
               </div>
               <button className="btn btn-primary" onClick={handleSaveBasic} disabled={loading}>Save Basic Info</button>

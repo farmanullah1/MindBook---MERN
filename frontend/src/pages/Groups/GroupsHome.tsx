@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * GroupsHome.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiPlus, FiUsers, FiCompass, FiShield } from 'react-icons/fi';
@@ -5,6 +14,7 @@ import api from '../../services/api';
 import { IGroup } from '../../types';
 import GroupCard from '../../components/Group/GroupCard';
 import CreateGroupModal from '../../components/Group/CreateGroupModal';
+import Navbar from '../../components/Navbar/Navbar';
 import './Groups.css';
 
 const GroupsHome: React.FC = () => {
@@ -30,7 +40,9 @@ const GroupsHome: React.FC = () => {
   }, []);
 
   return (
-    <div className="groups-page-container">
+    <>
+      <Navbar />
+      <div className="groups-page-container">
       <div className="groups-sidebar">
         <div className="sidebar-header">
           <h2>Groups</h2>
@@ -121,6 +133,7 @@ const GroupsHome: React.FC = () => {
         />
       )}
     </div>
+    </>
   );
 };
 

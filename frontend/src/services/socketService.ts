@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * socketService.ts — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import { io, Socket } from 'socket.io-client';
 import { store } from '../store/store';
 import { addMessage, updateOnlineStatus, setTypingStatus } from '../store/slices/chatSlice';

@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * GroupPage.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { 
@@ -8,6 +17,7 @@ import api from '../../services/api';
 import { IGroup, IPost } from '../../types';
 import Post from '../../components/Post/Post';
 import CreatePost from '../../components/CreatePost/CreatePost';
+import Navbar from '../../components/Navbar/Navbar';
 import EditGroupModal from './EditGroupModal';
 import './GroupPage.css';
 
@@ -21,6 +31,20 @@ const GroupPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const iconInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      try {
+        const { uploadFile } = await import('../../services/api');
+        const res = await uploadFile(e.target.files[0]);
+        await api.put(`/conversations/${group?._id}/icon`, { iconUrl: res.url });
+        fetchGroupData();
+      } catch (error) {
+        console.error('Failed to update group icon:', error);
+      }
+    }
+  };
 
   const fetchGroupData = async () => {
     try {
@@ -114,7 +138,9 @@ const GroupPage: React.FC = () => {
   if (!group) return <div className="error-message">Group not found</div>;
 
   return (
-    <div className="group-page-wrapper">
+    <>
+      <Navbar />
+      <div className="group-page-wrapper" style={{ paddingTop: 'var(--navbar-height)' }}>
       {/* Header Section */}
       <div className="group-header">
         <div className="group-cover-container">
@@ -127,6 +153,19 @@ const GroupPage: React.FC = () => {
         </div>
         
         <div className="group-header-info">
+          <div className="group-avatar-wrapper">
+             {group.groupIcon ? (
+               <img src={group.groupIcon} alt="Group Icon" className="group-avatar-main" />
+             ) : (
+               <div className="group-avatar-placeholder">👥</div>
+             )}
+             {group.isAdmin && (
+               <button className="edit-avatar-btn" onClick={() => iconInputRef.current?.click()}>
+                 <FiImage />
+               </button>
+             )}
+             <input type="file" hidden ref={iconInputRef} onChange={handleIconUpload} accept="image/*" />
+          </div>
           <div className="header-main">
             <div className="info-text">
               <h1>{group.name}</h1>
@@ -384,7 +423,8 @@ const GroupPage: React.FC = () => {
           onUpdated={fetchGroupData} 
         />
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

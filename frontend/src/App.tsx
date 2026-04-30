@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * App.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from './store/hooks';
@@ -13,7 +22,11 @@ import GroupDiscover from './pages/Groups/GroupDiscover';
 import GroupPage from './pages/Groups/GroupPage';
 import Events from './pages/Events/Events';
 import Search from './pages/Search/Search';
+import Friends from './pages/Friends/Friends';
+import Saved from './pages/Saved/Saved';
+import Settings from './pages/Settings/Settings';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import MobileBottomNav from './components/Navbar/MobileBottomNav';
 import { FiArrowUp } from 'react-icons/fi';
 import { socketService } from './services/socketService';
 
@@ -138,6 +151,14 @@ const App: React.FC = () => {
           }
         />
         <Route
+          path="/friends"
+          element={
+            <ProtectedRoute>
+              <Friends />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/groups"
           element={
             <ProtectedRoute>
@@ -185,8 +206,25 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/saved"
+          element={
+            <ProtectedRoute>
+              <Saved />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {token && <MobileBottomNav />}
       {showScroll && (
         <button 
           className="back-to-top" 

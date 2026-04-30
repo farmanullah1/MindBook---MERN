@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * Post.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema(
@@ -50,6 +59,10 @@ const postSchema = new mongoose.Schema(
       ref: 'Group',
     },
     location: {
+      type: String,
+      default: '',
+    },
+    feeling: {
       type: String,
       default: '',
     },

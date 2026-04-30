@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * Home.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { useInView } from 'react-intersection-observer';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -8,6 +17,7 @@ import RightSidebar from '../../components/RightSidebar/RightSidebar';
 import StoriesFeed from '../../components/StoriesFeed/StoriesFeed';
 import CreatePost from '../../components/CreatePost/CreatePost';
 import Post from '../../components/Post/Post';
+import SkeletonPost from '../../components/Post/SkeletonPost';
 import './Home.css';
 
 const Home: React.FC = () => {
@@ -41,20 +51,7 @@ const Home: React.FC = () => {
 
             {posts.length === 0 && loading ? (
               <div className="feed-loading">
-                {/* Skeleton placeholders */}
-                {[1, 2].map(i => (
-                  <div key={i} className="skeleton-post">
-                    <div className="skeleton-header">
-                      <div className="skeleton skeleton-avatar" />
-                      <div className="skeleton-meta">
-                        <div className="skeleton skeleton-name" />
-                        <div className="skeleton skeleton-time" />
-                      </div>
-                    </div>
-                    <div className="skeleton skeleton-content" />
-                    <div className="skeleton skeleton-content short" />
-                  </div>
-                ))}
+                {[1, 2, 3].map(i => <SkeletonPost key={i} />)}
               </div>
             ) : posts.length === 0 ? (
               <div className="feed-empty card">

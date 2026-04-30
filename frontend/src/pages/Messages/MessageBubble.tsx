@@ -1,4 +1,14 @@
-import React from 'react';
+/**
+ * CodeDNA
+ * MessageBubble.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
+import { FiFile, FiCornerUpLeft, FiShare2, FiCheck, FiMoreHorizontal, FiTrash2 } from 'react-icons/fi';
+import { useState } from 'react';
 import { IMessage } from '../../types';
 import { getInitials } from '../../utils/helpers';
 import './Messages.css';
@@ -7,9 +17,63 @@ interface MessageBubbleProps {
   message: IMessage;
   isMe: boolean;
   showAvatar: boolean;
+  onReply: () => void;
+  onForward: () => void;
+  onDelete: () => void;
+  onDeleteEveryone?: () => void;
+  onMediaClick?: (url: string, type: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe, showAvatar }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ 
+  message, 
+  isMe, 
+  showAvatar, 
+  onReply, 
+  onForward,
+  onDelete,
+  onDeleteEveryone,
+  onMediaClick
+}) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const renderMedia = () => {
+    if (!message.mediaUrl) return null;
+
+    switch (message.mediaType) {
+      case 'image':
+        return <img src={message.mediaUrl} alt="Sent media" className="message-media image" onClick={() => onMediaClick?.(message.mediaUrl!, 'image')} />;
+      case 'video':
+        return <video src={message.mediaUrl} className="message-media video" onClick={() => onMediaClick?.(message.mediaUrl!, 'video')} />;
+      case 'audio':
+        return (
+          <div className="message-audio">
+            <audio src={message.mediaUrl} controls />
+            {message.mediaMetadata?.duration && (
+              <span className="audio-duration">{Math.round(message.mediaMetadata.duration)}s</span>
+            )}
+          </div>
+        );
+      case 'document':
+        return (
+          <a href={message.mediaUrl} target="_blank" rel="noopener noreferrer" className="message-file">
+            <FiFile size={20} />
+            <div className="file-info">
+              <span className="file-name">{message.mediaMetadata?.fileName || 'Attachment'}</span>
+              <span className="file-size">{message.mediaMetadata?.fileSize ? `${(message.mediaMetadata.fileSize / 1024).toFixed(1)} KB` : ''}</span>
+            </div>
+          </a>
+        );
+      case 'story_reply':
+        return (
+          <div className="story-reply-bubble">
+            <div className="story-reply-tag">Replied to story</div>
+            {message.text && <p className="message-text">{message.text}</p>}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className={`message-row ${isMe ? 'me' : 'them'}`}>
       {!isMe && (
@@ -26,14 +90,62 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe, showAvatar
         </div>
       )}
       <div className="message-content-wrapper">
+        {message.repliedTo && (
+          <div className="replied-message-preview">
+            <FiCornerUpLeft size={12} />
+            <span>{message.repliedTo.text || 'Media'}</span>
+          </div>
+        )}
         <div className="message-bubble" title={new Date(message.createdAt).toLocaleString()}>
           {message.isDeleted ? (
             <span className="deleted-text">This message was deleted</span>
           ) : (
-            message.text
+            <>
+              {renderMedia()}
+              {message.text && message.mediaType !== 'story_reply' && <p className="message-text">{message.text}</p>}
+            </>
           )}
         </div>
-        {/* Read receipt indicator could go here */}
+        <div className="message-actions-overlay">
+          <button className="message-action-btn reply" onClick={onReply} title="Reply">
+            <FiCornerUpLeft size={16} />
+          </button>
+          <button className="message-action-btn forward" onClick={onForward} title="Forward">
+            <FiShare2 size={16} />
+          </button>
+          <div className="message-more-container">
+            <button className="message-action-btn more" onClick={() => setShowMenu(!showMenu)} title="More">
+              <FiMoreHorizontal size={16} />
+            </button>
+            {showMenu && (
+              <div className="message-context-menu">
+                <button onClick={() => { onDelete(); setShowMenu(false); }}>
+                  <FiTrash2 size={14} /> Remove for you
+                </button>
+                {isMe && onDeleteEveryone && !message.isDeleted && (
+                  <button className="danger" onClick={() => { onDeleteEveryone(); setShowMenu(false); }}>
+                    <FiTrash2 size={14} /> Unsend for everyone
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        {isMe && (
+          <div className="message-status">
+            {message.readBy && message.readBy.length > 1 ? (
+              <div className="status-read" title="Seen">
+                <FiCheck size={14} className="double-check read" />
+                <FiCheck size={14} className="double-check read second" />
+              </div>
+            ) : (
+              <div className="status-delivered" title="Delivered">
+                <FiCheck size={14} className="double-check" />
+                <FiCheck size={14} className="double-check second" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

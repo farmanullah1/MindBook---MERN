@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * upload.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const multer = require('multer');
 const path = require('path');
 
@@ -11,14 +20,14 @@ const storage = multer.diskStorage({
 });
 
 const checkFileType = (file, cb) => {
-  const filetypes = /jpg|jpeg|png|gif|webp|mp4|mov|avi|webm/;
+  const filetypes = /jpg|jpeg|png|gif|webp|mp4|mov|avi|webm|mp3|wav|ogg|pdf|doc|docx|xls|xlsx|txt/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = /image|video/.test(file.mimetype);
+  const mimetype = /image|video|audio|pdf|msword|wordprocessingml|spreadsheet|text/.test(file.mimetype);
 
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb('Error: Images or Videos Only!');
+    cb('Error: File type not supported!');
   }
 };
 

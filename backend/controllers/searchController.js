@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * searchController.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const User = require('../models/User');
 const Post = require('../models/Post');
 const Group = require('../models/Group');

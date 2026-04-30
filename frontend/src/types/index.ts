@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * index.ts — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 export interface IUser {
   _id: string;
   name: string;
@@ -8,6 +17,10 @@ export interface IUser {
   location?: { city: string; country: string };
   work?: { _id?: string; title: string; company: string; startYear?: number; endYear?: number }[];
   education?: { _id?: string; school: string; degree: string; year?: number }[];
+  relationshipStatus?: 'Single' | 'In a relationship' | 'Engaged' | 'Married' | 'It\'s complicated' | 'In an open relationship' | 'Widowed' | 'Separated' | 'Divorced' | '';
+  hometown?: string;
+  birthdate?: string;
+  website?: string;
   savedPosts?: string[];
   friends: IUser[];
   friendRequests: IUser[];
@@ -68,6 +81,7 @@ export interface ChatState {
   conversations: IConversation[];
   activeConversation: IConversation | null;
   messages: IMessage[];
+  suggestions: IUser[];
   loading: boolean;
   error: string | null;
   unreadCount: number;
@@ -130,6 +144,7 @@ export interface IPost {
   image: string;
   video?: string;
   location?: string;
+  feeling?: string;
   likes: string[];
   comments: IComment[];
   createdAt: string;

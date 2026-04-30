@@ -1,3 +1,12 @@
+/*
+ * CodeDNA
+ * Search.css — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 .search-results-container {
   padding: var(--space-4);
 }
@@ -10,6 +19,29 @@
 .search-header h2 {
   margin-bottom: var(--space-3);
   font-size: 1.5rem;
+}
+
+.search-input-wrapper {
+  margin-bottom: var(--space-4);
+}
+
+.search-page-form {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  padding: 0 16px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  gap: 12px;
+}
+
+.search-page-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
 }
 
 .search-tabs {

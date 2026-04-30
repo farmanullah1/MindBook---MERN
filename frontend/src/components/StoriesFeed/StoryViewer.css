@@ -1,3 +1,12 @@
+/*
+ * CodeDNA
+ * StoryViewer.css — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 .story-viewer-overlay {
   position: fixed;
   top: 0;
@@ -115,7 +124,13 @@
   text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
 
-.story-close-btn {
+.story-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.story-action-btn {
   background: none;
   border: none;
   color: white;
@@ -126,26 +141,64 @@
   justify-content: center;
   opacity: 0.8;
   transition: opacity 0.2s;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
 
-.story-close-btn:hover {
+.story-action-btn:hover {
   opacity: 1;
 }
 
-/* Image */
-.story-image-container {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Footer */
+.story-viewer-footer {
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
 }
 
-.story-viewer-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.story-reply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.story-reply-form input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 10px 16px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: background 0.2s;
+}
+
+.story-reply-form input:focus {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.story-reactions-quick {
+  display: flex;
+  justify-content: space-around;
+  padding: 4px 0;
+}
+
+.story-emoji-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.story-emoji-btn:hover {
+  transform: scale(1.3);
+}
+
+.story-emoji-btn:active {
+  transform: scale(0.9);
 }
 
 /* Navigation Overlay */
@@ -154,7 +207,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 100px); /* Leave room for footer */
   display: flex;
   z-index: 5;
 }
@@ -163,26 +216,4 @@
   flex: 1;
   height: 100%;
   cursor: pointer;
-}
-
-/* Delete Button */
-.story-delete-btn {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-.story-delete-btn:hover {
-  background: rgba(255, 0, 0, 0.8);
 }

@@ -1,145 +1,67 @@
-/* ===========================
-   Right Sidebar Styles
-   =========================== */
+/*
+ * CodeDNA
+ * RightSidebar.css — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 .right-sidebar {
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--navbar-height));
   position: fixed;
   top: var(--navbar-height);
   right: 0;
-  width: var(--sidebar-width);
-  height: calc(100vh - var(--navbar-height));
-  overflow: hidden;
-  padding: var(--space-2) 0;
-  z-index: 100;
-}
-
-.right-sidebar:hover {
+  padding: 16px 8px;
   overflow-y: auto;
+  z-index: 900;
+  background: transparent;
+  transition: var(--t-normal);
 }
 
-.right-sidebar .sidebar-scroll {
-  padding: var(--space-2) var(--space-4);
+.right-sidebar::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* Section */
+.right-sidebar:hover::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
 .rs-section {
-  margin-bottom: var(--space-2);
+  margin-bottom: 12px;
 }
 
 .rs-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-2);
+  padding: 0 12px;
+  margin-bottom: 8px;
 }
 
 .rs-section-title {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-size: 1.0625rem;
+  font-weight: 600;
   color: var(--text-secondary);
-  padding: var(--space-1) 0;
 }
 
 .rs-search-btn {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: background var(--transition-fast);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  transition: var(--t-fast);
 }
 
 .rs-search-btn:hover {
-  background: var(--hover-overlay);
+  background: var(--bg-hover);
 }
 
-.rs-divider {
-  height: 1px;
-  background: var(--divider-color);
-  margin: var(--space-3) 0;
-}
-
-/* Avatar */
-.rs-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.rs-avatar-initials {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--brand-primary-light);
-  color: var(--brand-primary);
-  font-weight: 600;
-  font-size: 13px;
-}
-
-/* Friend Requests */
-.rs-request-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-2) 0;
-}
-
-.rs-user-info {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.rs-user-name {
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-base);
-}
-
-.rs-request-actions {
-  display: flex;
-  gap: var(--space-2);
-  padding-left: 44px;
-}
-
-.btn-sm {
-  height: 32px;
-  font-size: var(--font-size-sm);
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-sm);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-/* Birthdays */
-.rs-birthday-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) 0;
-}
-
-.rs-birthday-icon {
-  font-size: 24px;
-}
-
-.rs-birthday-text {
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-  line-height: 1.4;
-}
-
-.rs-birthday-text strong {
-  font-weight: 600;
-}
-
-/* Contacts */
 .rs-contacts-list {
   display: flex;
   flex-direction: column;
@@ -148,106 +70,154 @@
 .rs-contact-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
+  gap: 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: var(--t-fast);
   position: relative;
 }
 
 .rs-contact-item:hover {
-  background: var(--hover-overlay);
+  background: var(--bg-hover);
+}
+
+.rs-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.rs-avatar-initials {
+  background: var(--brand-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .rs-contact-name {
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-base);
-  flex: 1;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
 }
 
 .rs-online-dot {
   width: 10px;
   height: 10px;
+  background: #31a24c;
+  border: 2px solid var(--bg-body);
   border-radius: 50%;
-  background: var(--success-color);
-  flex-shrink: 0;
+  position: absolute;
+  bottom: 8px;
+  left: 38px;
 }
 
-.rs-empty {
-  padding: var(--space-4);
-  text-align: center;
-  font-size: var(--font-size-sm);
+.rs-divider {
+  height: 1px;
+  background: var(--divider-color);
+  margin: 12px 12px;
 }
 
-/* Suggestions */
-.rs-suggestions-list {
+.rs-birthday-item {
+  display: flex;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--t-fast);
+}
+
+.rs-birthday-item:hover {
+  background: var(--bg-hover);
+}
+
+.rs-birthday-icon {
+  font-size: 24px;
+}
+
+.rs-birthday-text {
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+
+/* Suggestions & Requests */
+.rs-request-item, .rs-suggestion-item {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  border: var(--glass-border);
+  margin-bottom: 8px;
+}
+
+.rs-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rs-user-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.rs-request-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.rs-request-actions button {
+  flex: 1;
 }
 
 .rs-suggestion-item {
-  display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast);
-}
-
-.rs-suggestion-item:hover {
-  background: var(--hover-overlay);
 }
 
 .rs-add-friend-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--brand-primary-light);
-  color: var(--brand-primary);
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  background: var(--bg-input);
+  border-radius: 50%;
+  color: var(--brand-primary);
+  transition: var(--t-fast);
 }
 
 .rs-add-friend-btn:hover {
   background: var(--brand-primary);
-  color: #fff;
-}
-
-.rs-add-friend-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  color: white;
+  transform: scale(1.1);
 }
 
 /* Trending */
-.rs-trending-list {
-  display: flex;
-  flex-direction: column;
-}
-
 .rs-trending-item {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2);
+  gap: 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: var(--t-fast);
 }
 
 .rs-trending-item:hover {
-  background: var(--hover-overlay);
+  background: var(--bg-hover);
 }
 
 .rs-trending-rank {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+  font-weight: 700;
   color: var(--brand-primary);
-  width: 32px;
+  font-size: 1rem;
 }
 
 .rs-trending-info {
@@ -256,11 +226,23 @@
 }
 
 .rs-trending-topic {
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-base);
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .rs-trending-count {
-  font-size: var(--font-size-xs);
+  font-size: 0.75rem;
   color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1260px) {
+  .right-sidebar { width: 80px; padding: 16px 4px; }
+  .rs-section-title, .rs-contact-name, .rs-birthday-text, .rs-user-name, .rs-trending-info, .rs-request-actions, .rs-search-btn { display: none; }
+  .rs-contact-item, .rs-birthday-item, .rs-suggestion-item { justify-content: center; padding: 8px; }
+  .rs-online-dot { left: 32px; bottom: 8px; }
+}
+
+@media (max-width: 900px) {
+  .right-sidebar { display: none; }
 }

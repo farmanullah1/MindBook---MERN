@@ -1,8 +1,18 @@
+/**
+ * CodeDNA
+ * GroupDiscover.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React, { useEffect, useState } from 'react';
 import { FiCompass, FiSearch, FiGlobe, FiLock } from 'react-icons/fi';
 import api from '../../services/api';
 import { IGroup } from '../../types';
 import GroupCard from '../../components/Group/GroupCard';
+import Navbar from '../../components/Navbar/Navbar';
 import './Groups.css';
 
 const GroupDiscover: React.FC = () => {
@@ -31,7 +41,9 @@ const GroupDiscover: React.FC = () => {
   );
 
   return (
-    <div className="groups-page-container">
+    <>
+      <Navbar />
+      <div className="groups-page-container">
       <div className="groups-sidebar discover-sidebar">
         <div className="sidebar-header">
           <h2>Discover</h2>
@@ -83,7 +95,8 @@ const GroupDiscover: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

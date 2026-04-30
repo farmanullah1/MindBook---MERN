@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * StoryViewer.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 import { IUserStoryGroup } from '../../types';
@@ -154,7 +163,40 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     }
   };
 
+  const [replyText, setReplyText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleReact = async (emoji: string) => {
+    try {
+      await api.post(`/stories/${currentStory._id}/react`, { emoji });
+      // Visual feedback could be added here
+    } catch (error) {
+      console.error('Failed to react to story:', error);
+    }
+  };
+
+  const handleReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyText.trim() || isSending) return;
+
+    setIsSending(true);
+    setIsPaused(true);
+    try {
+      await api.post(`/stories/${currentStory._id}/reply`, { message: replyText });
+      setReplyText('');
+      setIsSending(false);
+      setIsPaused(false);
+      // Maybe show a success toast or auto-move to next story?
+    } catch (error) {
+      console.error('Failed to reply to story:', error);
+      setIsSending(false);
+      setIsPaused(false);
+    }
+  };
+
   if (!currentGroup || !currentStory) return null;
+
+  const emojis = ['❤️', '😂', '😮', '😢', '😡', '👍'];
 
   return (
     <div className="story-viewer-overlay">
@@ -190,9 +232,16 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
               <span className="story-viewer-time">{formatTimeAgo(currentStory.createdAt)}</span>
             </div>
           </div>
-          <button className="story-close-btn" onClick={onClose}>
-            <FiX size={24} />
-          </button>
+          <div className="story-viewer-actions">
+            {currentUserId === currentGroup.user._id && (
+              <button className="story-action-btn" onClick={handleDelete} title="Delete Story">
+                <FiTrash2 size={20} />
+              </button>
+            )}
+            <button className="story-close-btn" onClick={onClose}>
+              <FiX size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -223,13 +272,35 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
             <div className="story-nav-left" onClick={(e) => { e.stopPropagation(); prevStory(); }} />
             <div className="story-nav-right" onClick={(e) => { e.stopPropagation(); nextStory(); }} />
           </div>
-
-          {currentUserId === currentGroup.user._id && (
-            <button className="story-delete-btn" onClick={handleDelete} title="Delete Story">
-              <FiTrash2 size={20} />
-            </button>
-          )}
         </div>
+
+        {/* Footer - Only show if not the user's own story */}
+        {currentUserId !== currentGroup.user._id && (
+          <div className="story-viewer-footer" onClick={(e) => e.stopPropagation()}>
+            <form className="story-reply-form" onSubmit={handleReply}>
+              <input 
+                type="text" 
+                placeholder="Send message" 
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onFocus={() => setIsPaused(true)}
+                onBlur={() => setIsPaused(false)}
+              />
+              <div className="story-reactions-quick">
+                {emojis.map(emoji => (
+                  <button 
+                    key={emoji} 
+                    type="button" 
+                    className="story-emoji-btn"
+                    onClick={() => handleReact(emoji)}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </form>
+          </div>
+        )}
 
       </div>
     </div>

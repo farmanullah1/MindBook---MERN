@@ -1,6 +1,15 @@
+/**
+ * CodeDNA
+ * Profile.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FiMapPin, FiBriefcase, FiCalendar, FiEdit3, FiUserPlus, FiUserCheck, FiClock, FiMessageSquare } from 'react-icons/fi';
+import { FiMapPin, FiBriefcase, FiCalendar, FiEdit3, FiUserPlus, FiUserCheck, FiClock, FiMessageSquare, FiHeart, FiHome, FiGlobe } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchUserPosts, clearUserPosts } from '../../store/slices/postsSlice';
 import { updateUserInState } from '../../store/slices/authSlice';
@@ -12,6 +21,7 @@ import Navbar from '../../components/Navbar/Navbar';
 import CreatePost from '../../components/CreatePost/CreatePost';
 import Post from '../../components/Post/Post';
 import EditProfileModal from '../../components/EditProfileModal/EditProfileModal';
+import { useConversation } from '../../hooks/useConversation';
 import './Profile.css';
 
 const Profile: React.FC = () => {
@@ -19,6 +29,7 @@ const Profile: React.FC = () => {
   const dispatch = useAppDispatch();
   const { user: currentUser } = useAppSelector((state) => state.auth);
   const { userPosts, loading } = useAppSelector((state) => state.posts);
+  const { navigateToChat } = useConversation();
 
   const [profileUser, setProfileUser] = React.useState<IUser | null>(null);
   const [profileLoading, setProfileLoading] = React.useState(true);
@@ -27,6 +38,8 @@ const Profile: React.FC = () => {
   const [friendStatus, setFriendStatus] = React.useState<'none' | 'friends' | 'pending' | 'requested'>('none');
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [mutualFriends, setMutualFriends] = React.useState<IUser[]>([]);
+  const [userMedia, setUserMedia] = React.useState<any[]>([]);
+  const [activeTab, setActiveTab] = React.useState<'posts' | 'photos'>('posts');
   
   const coverInputRef = React.useRef<HTMLInputElement>(null);
   const avatarInputRef = React.useRef<HTMLInputElement>(null);
@@ -60,6 +73,14 @@ const Profile: React.FC = () => {
             } catch (err) {
               console.error('Failed to fetch mutual friends', err);
             }
+          }
+
+          // Fetch media
+          try {
+            const mediaRes = await api.get(`/users/${id}/media`);
+            setUserMedia(mediaRes.data);
+          } catch (err) {
+            console.error('Failed to fetch media', err);
           }
         }
       } catch (error) {
@@ -237,9 +258,13 @@ const Profile: React.FC = () => {
                 </button>
               ) : (
                 <>
-                  <Link to="/messages" className="btn btn-secondary" style={{ marginRight: '8px' }}>
+                  <button 
+                    className="btn btn-secondary" 
+                    style={{ marginRight: '8px' }}
+                    onClick={() => navigateToChat(profileUser._id)}
+                  >
                     <FiMessageSquare size={16} /> Message
-                  </Link>
+                  </button>
                   <button
                     className={`btn ${friendStatus === 'friends' ? 'btn-secondary' : 'btn-primary'}`}
                     onClick={handleFriendAction}
@@ -252,6 +277,25 @@ const Profile: React.FC = () => {
                   </button>
                 </>
               )}
+            </div>
+          </div>
+
+          <div className="profile-tabs-wrapper">
+            <div className="profile-tabs">
+              <button 
+                className={`profile-tab ${activeTab === 'posts' ? 'active' : ''}`}
+                onClick={() => setActiveTab('posts')}
+              >
+                Posts
+              </button>
+              <button 
+                className={`profile-tab ${activeTab === 'photos' ? 'active' : ''}`}
+                onClick={() => setActiveTab('photos')}
+              >
+                Photos
+              </button>
+              <button className="profile-tab">Friends</button>
+              <button className="profile-tab">About</button>
             </div>
           </div>
         </div>
@@ -308,6 +352,26 @@ const Profile: React.FC = () => {
                     <span>Lives in <strong>{profileUser.location.city}{profileUser.location.country ? `, ${profileUser.location.country}` : ''}</strong></span>
                   </div>
                 )}
+                {profileUser.hometown && (
+                  <div className="profile-detail-item">
+                    <FiHome size={18} className="detail-icon" />
+                    <span>From <strong>{profileUser.hometown}</strong></span>
+                  </div>
+                )}
+                {profileUser.relationshipStatus && (
+                  <div className="profile-detail-item">
+                    <FiHeart size={18} className="detail-icon" />
+                    <span>{profileUser.relationshipStatus}</span>
+                  </div>
+                )}
+                {profileUser.website && (
+                  <div className="profile-detail-item">
+                    <FiGlobe size={18} className="detail-icon" />
+                    <a href={profileUser.website.startsWith('http') ? profileUser.website : `https://${profileUser.website}`} target="_blank" rel="noopener noreferrer" className="profile-link">
+                      {profileUser.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  </div>
+                )}
                 <div className="profile-detail-item">
                   <FiCalendar size={18} className="detail-icon" />
                   <span>Joined {formatDate(profileUser.createdAt)}</span>
@@ -347,29 +411,56 @@ const Profile: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column - Posts */}
+          {/* Right Column - Content */}
           <div className="profile-right-col">
-            {isOwnProfile && <CreatePost />}
+            {activeTab === 'posts' ? (
+              <>
+                {isOwnProfile && <CreatePost />}
 
-            {loading && userPosts.length === 0 ? (
-              <div className="feed-loading">
-                <div className="skeleton-post">
-                  <div className="skeleton-header">
-                    <div className="skeleton skeleton-avatar" />
-                    <div className="skeleton-meta">
-                      <div className="skeleton skeleton-name" />
-                      <div className="skeleton skeleton-time" />
+                {loading && userPosts.length === 0 ? (
+                  <div className="feed-loading">
+                    <div className="skeleton-post">
+                      <div className="skeleton-header">
+                        <div className="skeleton skeleton-avatar" />
+                        <div className="skeleton-meta">
+                          <div className="skeleton skeleton-name" />
+                          <div className="skeleton skeleton-time" />
+                        </div>
+                      </div>
+                      <div className="skeleton skeleton-content" />
                     </div>
                   </div>
-                  <div className="skeleton skeleton-content" />
+                ) : userPosts.length === 0 ? (
+                  <div className="card" style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
+                    <p className="text-secondary">No posts yet</p>
+                  </div>
+                ) : (
+                  userPosts.map((post) => <Post key={post._id} post={post} />)
+                )}
+              </>
+            ) : (
+              <div className="card profile-media-card">
+                <div className="card-header">
+                  <h3 className="card-title">Photos</h3>
+                </div>
+                <div className="profile-media-grid">
+                  {userMedia.length > 0 ? (
+                    userMedia.map((media, idx) => (
+                      <div key={idx} className="media-item">
+                        {media.mediaType === 'video' ? (
+                          <video src={media.mediaUrl} />
+                        ) : (
+                          <img src={media.mediaUrl} alt="User upload" />
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="empty-state">
+                      <p>No photos or videos yet.</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            ) : userPosts.length === 0 ? (
-              <div className="card" style={{ padding: 'var(--space-8)', textAlign: 'center' }}>
-                <p className="text-secondary">No posts yet</p>
-              </div>
-            ) : (
-              userPosts.map((post) => <Post key={post._id} post={post} />)
             )}
           </div>
         </div>

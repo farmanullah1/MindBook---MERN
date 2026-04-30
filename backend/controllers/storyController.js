@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * storyController.js — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 const Story = require('../models/Story');
 const User = require('../models/User');
 
@@ -83,8 +92,100 @@ const deleteStory = async (req, res) => {
   }
 };
 
+const reactToStory = async (req, res) => {
+  try {
+    const { emoji } = req.body;
+    const story = await Story.findById(req.params.id);
+    if (!story) return res.status(404).json({ message: 'Story not found' });
+
+    // Remove existing reaction from this user if any
+    story.reactions = story.reactions.filter(r => r.user.toString() !== req.user.id);
+    
+    // Add new reaction
+    story.reactions.push({ user: req.user.id, emoji });
+    await story.save();
+
+    // Create notification for story owner
+    if (story.user.toString() !== req.user.id) {
+      const { createNotification } = require('./notificationController');
+      await createNotification(
+        story.user,
+        req.user.id,
+        'story_reaction',
+        story._id,
+        `reacted to your story: ${emoji}`
+      );
+    }
+
+    res.json(story.reactions);
+  } catch (error) {
+    console.error('ReactToStory error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const replyToStory = async (req, res) => {
+  try {
+    const { message } = req.body;
+    const story = await Story.findById(req.params.id);
+    if (!story) return res.status(404).json({ message: 'Story not found' });
+
+    story.replies.push({ user: req.user.id, message });
+    await story.save();
+
+    // Send as a direct message in conversation
+    const Conversation = require('../models/Conversation');
+    const Message = require('../models/Message');
+
+    let conversation = await Conversation.findOne({
+      isGroup: false,
+      participants: { $all: [req.user.id, story.user.toString()] }
+    });
+
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [req.user.id, story.user],
+        status: 'accepted'
+      });
+    }
+
+    const newMessage = await Message.create({
+      conversation: conversation._id,
+      sender: req.user.id,
+      text: message,
+      mediaType: 'story_reply',
+      storyId: story._id
+    });
+
+    // Update conversation last message
+    conversation.lastMessage = {
+      text: `Replied to story: ${message}`,
+      sender: req.user.id,
+      createdAt: new Date()
+    };
+    await conversation.save();
+
+    // Create notification
+    const { createNotification } = require('./notificationController');
+    await createNotification(
+      story.user,
+      req.user.id,
+      'story_reply',
+      story._id,
+      `replied to your story: "${message}"`
+    );
+
+    res.json({ message: 'Reply sent', chatMessage: newMessage });
+  } catch (error) {
+    console.error('ReplyToStory error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createStory,
   getFeedStories,
   deleteStory,
+  reactToStory,
+  replyToStory
 };

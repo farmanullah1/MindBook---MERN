@@ -1,3 +1,12 @@
+/**
+ * CodeDNA
+ * CreatePost.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { FiImage, FiSmile, FiVideo, FiMapPin, FiX } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -69,9 +78,10 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
         type = res.type;
       }
 
-      const postData: any = { 
-        content: feeling ? `${feeling.emoji} is feeling ${feeling.name}. ${content}` : content, 
-        location,
+      const postData: any = {
+        content: content.trim(),
+        location: location,
+        feeling: feeling?.name,
         group: groupId || null
       };
       if (type === 'video') {
@@ -90,10 +100,11 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
         await dispatch(createPost(postData)).unwrap();
       }
       setContent('');
-      setLocation('');
+      setMediaFile(null);
       setFeeling(null);
-      setShowLocationInput(false);
+      setLocation('');
       setShowFeelingPicker(false);
+      setShowLocationInput(false);
       removeMedia();
     } catch (error) {
       console.error('Failed to create post:', error);

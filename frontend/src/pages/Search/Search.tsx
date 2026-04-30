@@ -1,5 +1,15 @@
+/**
+ * CodeDNA
+ * Search.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { FiSearch } from 'react-icons/fi';
 import Navbar from '../../components/Navbar/Navbar';
 import LeftSidebar from '../../components/LeftSidebar/LeftSidebar';
 import RightSidebar from '../../components/RightSidebar/RightSidebar';
@@ -22,6 +32,8 @@ const Search: React.FC = () => {
   const [results, setResults] = React.useState<SearchResults>({ users: [], posts: [], groups: [] });
   const [loading, setLoading] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<'all' | 'users' | 'posts' | 'groups'>('all');
+  const [localQuery, setLocalQuery] = React.useState(query || '');
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const fetchResults = async () => {
@@ -47,6 +59,19 @@ const Search: React.FC = () => {
         <main className="main-content">
           <div className="search-results-container">
             <div className="search-header card">
+              <div className="search-input-wrapper">
+                <form onSubmit={(e) => { e.preventDefault(); if (localQuery.trim()) navigate(`/search?q=${localQuery}`); }} className="search-page-form">
+                  <FiSearch className="search-icon" />
+                  <input 
+                    type="text" 
+                    placeholder="Search MindBook" 
+                    value={localQuery} 
+                    onChange={(e) => setLocalQuery(e.target.value)} 
+                    className="search-page-input"
+                  />
+                  <button type="submit" className="btn btn-primary btn-sm">Search</button>
+                </form>
+              </div>
               <h2>Search results for "{query}"</h2>
               <div className="search-tabs">
                 <button 

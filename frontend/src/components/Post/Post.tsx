@@ -1,15 +1,41 @@
+/**
+ * CodeDNA
+ * Post.tsx — core functionality
+ * exports: none
+ * used_by: internal
+ * rules: Follow project conventions
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiThumbsUp, FiMessageCircle, FiShare2, FiMoreHorizontal, FiTrash2, FiSend, FiBookmark, FiEdit2, FiMapPin } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FiThumbsUp, 
+  FiMessageCircle, 
+  FiShare2, 
+  FiMoreHorizontal, 
+  FiBookmark, 
+  FiEdit2, 
+  FiTrash2, 
+  FiMapPin,
+  FiSend
+} from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { likePost, commentOnPost, deletePost, updatePost, deleteComment } from '../../store/slices/postsSlice';
-import { toggleSavePost } from '../../store/slices/authSlice';
+import { 
+  likePost, 
+  commentOnPost, 
+  deletePost, 
+  updatePost, 
+  deleteComment,
+  toggleSavePost
+} from '../../store/slices/postsSlice';
 import { IPost } from '../../types';
-import { getInitials, formatTimeAgo } from '../../utils/helpers';
+import { formatTimeAgo, getInitials } from '../../utils/helpers';
 import './Post.css';
 
 interface PostProps {
-  post: IPost & { isPinned?: boolean };
+  post: IPost;
   onPin?: (postId: string) => void;
   onUnpin?: (postId: string) => void;
   canManage?: boolean;
@@ -90,7 +116,15 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
   };
 
   return (
-    <article className="post card" id={`post-${post._id}`}>
+    <motion.article 
+      className="post card" 
+      id={`post-${post._id}`}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      layout
+    >
       {/* Post Header */}
       <div className="post-header">
         <Link to={`/profile/${post.user._id}`} className="post-user-info">
@@ -100,7 +134,14 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
             <div className="avatar">{getInitials(post.user.name)}</div>
           )}
           <div className="post-user-meta">
-            <span className="post-user-name">{post.user.name}</span>
+            <span className="post-user-name">
+              {post.user.name}
+              {post.feeling && (
+                <span className="post-user-feeling">
+                  {' '}is feeling <strong>{post.feeling}</strong>
+                </span>
+              )}
+            </span>
             <div className="post-time-location">
               <span className="post-time">{formatTimeAgo(post.createdAt)}</span>
               {post.location && (
@@ -126,36 +167,44 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
             <button className="post-menu-btn" onClick={() => setShowMenu(!showMenu)}>
               <FiMoreHorizontal size={20} />
             </button>
-            {showMenu && (
-              <div className="post-menu-dropdown">
-                <button className="post-menu-item" onClick={handleSave}>
-                  <FiBookmark size={16} className={isSaved ? 'text-brand' : ''} />
-                  <span>{isSaved ? 'Unsave post' : 'Save post'}</span>
-                </button>
-                {isOwner && (
-                  <>
-                    <button className="post-menu-item" onClick={() => { setIsEditing(true); setShowMenu(false); }}>
-                      <FiEdit2 size={16} />
-                      <span>Edit post</span>
-                    </button>
-                    <button className="post-menu-item delete-item" onClick={handleDelete}>
-                      <FiTrash2 size={16} />
-                      <span>Delete post</span>
-                    </button>
-                  </>
-                )}
-                {canManage && (
-                  <button className="post-menu-item" onClick={() => {
-                    if (post.isPinned) onUnpin?.(post._id);
-                    else onPin?.(post._id);
-                    setShowMenu(false);
-                  }}>
-                    <FiMapPin size={16} />
-                    <span>{post.isPinned ? 'Unpin post' : 'Pin post'}</span>
+            <AnimatePresence>
+              {showMenu && (
+                <motion.div 
+                  className="post-menu-dropdown dropdown-card"
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <button className="post-menu-item" onClick={handleSave}>
+                    <FiBookmark size={16} className={isSaved ? 'text-brand' : ''} />
+                    <span>{isSaved ? 'Unsave post' : 'Save post'}</span>
                   </button>
-                )}
-              </div>
-            )}
+                  {isOwner && (
+                    <>
+                      <button className="post-menu-item" onClick={() => { setIsEditing(true); setShowMenu(false); }}>
+                        <FiEdit2 size={16} />
+                        <span>Edit post</span>
+                      </button>
+                      <button className="post-menu-item delete-item" onClick={handleDelete}>
+                        <FiTrash2 size={16} />
+                        <span>Delete post</span>
+                      </button>
+                    </>
+                  )}
+                  {canManage && (
+                    <button className="post-menu-item" onClick={() => {
+                      if (post.isPinned) onUnpin?.(post._id);
+                      else onPin?.(post._id);
+                      setShowMenu(false);
+                    }}>
+                      <FiMapPin size={16} />
+                      <span>{post.isPinned ? 'Unpin post' : 'Pin post'}</span>
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
       </div>
 
@@ -163,14 +212,14 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
       {isEditing ? (
         <div className="post-edit-container" style={{ padding: '0 16px', marginTop: '12px' }}>
           <textarea
-            className="create-post-input"
+            className="input-field"
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            style={{ width: '100%', marginBottom: '8px' }}
+            style={{ minHeight: '100px', resize: 'vertical' }}
           />
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(false)}>Cancel</button>
-            <button className="btn btn-primary btn-sm" onClick={handleEditSubmit}>Save</button>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
+            <button className="btn btn-secondary" onClick={() => setIsEditing(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleEditSubmit}>Save</button>
           </div>
         </div>
       ) : (
@@ -216,15 +265,20 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
       {/* Action Buttons */}
       <div className="post-actions-divider" />
       <div className="post-actions">
-        <button
+        <motion.button
           className={`post-action-btn ${isLiked ? 'liked' : ''}`}
           onClick={handleLike}
           disabled={isLiking}
           id={`like-btn-${post._id}`}
+          whileTap={{ scale: 0.9 }}
         >
-          <FiThumbsUp size={18} />
+          <motion.div
+            animate={isLiked ? { scale: [1, 1.5, 1], rotate: [0, 15, 0] } : {}}
+          >
+            <FiThumbsUp size={18} />
+          </motion.div>
           <span>Like</span>
-        </button>
+        </motion.button>
         <button
           className="post-action-btn"
           onClick={() => setShowComments(!showComments)}
@@ -241,67 +295,75 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
       <div className="post-actions-divider" />
 
       {/* Comments Section */}
-      {showComments && (
-        <div className="post-comments-section">
-          {/* Existing Comments */}
-          {post.comments.map((comment) => (
-            <div key={comment._id} className="comment" id={`comment-${comment._id}`}>
-              <Link to={`/profile/${comment.user._id}`}>
-                {comment.user.profilePicture ? (
-                  <img src={comment.user.profilePicture} alt={comment.user.name} className="avatar avatar-sm" />
-                ) : (
-                  <div className="avatar avatar-sm">{getInitials(comment.user.name)}</div>
-                )}
-              </Link>
-              <div className="comment-body">
-                <div className="comment-bubble">
-                  <div className="comment-header-row">
-                    <Link to={`/profile/${comment.user._id}`} className="comment-author">
-                      {comment.user.name}
-                    </Link>
-                    {(comment.user._id === user?._id || isOwner) && (
-                      <button className="comment-delete-btn" onClick={() => handleDeleteComment(comment._id)}>
-                        <FiTrash2 size={12} />
-                      </button>
-                    )}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div 
+            className="post-comments-section"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Existing Comments */}
+            {post.comments.map((comment) => (
+              <div key={comment._id} className="comment" id={`comment-${comment._id}`}>
+                <Link to={`/profile/${comment.user._id}`}>
+                  {comment.user.profilePicture ? (
+                    <img src={comment.user.profilePicture} alt={comment.user.name} className="avatar avatar-sm" />
+                  ) : (
+                    <div className="avatar avatar-sm">{getInitials(comment.user.name)}</div>
+                  )}
+                </Link>
+                <div className="comment-body">
+                  <div className="comment-bubble">
+                    <div className="comment-header-row">
+                      <Link to={`/profile/${comment.user._id}`} className="comment-author">
+                        {comment.user.name}
+                      </Link>
+                      {(comment.user._id === user?._id || isOwner) && (
+                        <button className="comment-delete-btn" onClick={() => handleDeleteComment(comment._id)}>
+                          <FiTrash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+                    <p className="comment-text">{comment.text}</p>
                   </div>
-                  <p className="comment-text">{comment.text}</p>
-                </div>
-                <div className="comment-meta">
-                  <span className="comment-time">{formatTimeAgo(comment.createdAt)}</span>
-                  <button className="comment-like-btn">Like</button>
-                  <button className="comment-reply-btn">Reply</button>
+                  <div className="comment-meta">
+                    <span className="comment-time">{formatTimeAgo(comment.createdAt)}</span>
+                    <button className="comment-like-btn">Like</button>
+                    <button className="comment-reply-btn">Reply</button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {/* Comment Input */}
-          <form className="comment-form" onSubmit={handleComment}>
-            {user?.profilePicture ? (
-              <img src={user.profilePicture} alt={user.name} className="avatar avatar-sm" />
-            ) : (
-              <div className="avatar avatar-sm">{user ? getInitials(user.name) : '?'}</div>
-            )}
-            <div className="comment-input-wrapper">
-              <input
-                type="text"
-                className="comment-input"
-                placeholder="Write a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                id={`comment-input-${post._id}`}
-              />
-              {commentText.trim() && (
-                <button type="submit" className="comment-send-btn" id={`send-comment-${post._id}`}>
-                  <FiSend size={16} />
-                </button>
+            {/* Comment Input */}
+            <form className="comment-form" onSubmit={handleComment}>
+              {user?.profilePicture ? (
+                <img src={user.profilePicture} alt={user.name} className="avatar avatar-sm" />
+              ) : (
+                <div className="avatar avatar-sm">{user ? getInitials(user.name) : '?'}</div>
               )}
-            </div>
-          </form>
-        </div>
-      )}
-    </article>
+              <div className="comment-input-wrapper">
+                <input
+                  type="text"
+                  className="comment-input"
+                  placeholder="Write a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  id={`comment-input-${post._id}`}
+                />
+                {commentText.trim() && (
+                  <button type="submit" className="comment-send-btn" id={`send-comment-${post._id}`}>
+                    <FiSend size={16} />
+                  </button>
+                )}
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.article>
   );
 };
 
