@@ -108,16 +108,20 @@ const uploadMessageMedia = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const mediaUrl = `/uploads/${req.file.filename}`;
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const baseUrl = `${protocol}://${host}`;
+    
+    const mediaUrl = `${baseUrl}/uploads/${req.file.filename}`;
     const mediaType = getMediaType(req.file.mimetype);
     
     let thumbnailUrl = '';
     if (mediaType === 'video') {
       const thumbnailName = `thumb-${path.parse(req.file.filename).name}.jpg`;
-      const thumbnailPath = path.join('uploads', thumbnailName);
+      const thumbnailPath = path.join(__dirname, '..', 'uploads', thumbnailName);
       try {
         await generateVideoThumbnail(req.file.path, thumbnailPath);
-        thumbnailUrl = `/uploads/${thumbnailName}`;
+        thumbnailUrl = `${baseUrl}/uploads/${thumbnailName}`;
       } catch (err) {
         console.error('Thumbnail generation failed:', err);
       }
