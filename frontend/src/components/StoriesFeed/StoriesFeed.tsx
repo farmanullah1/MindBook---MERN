@@ -14,6 +14,8 @@ import api, { uploadFile } from '../../services/api';
 import { IUserStoryGroup } from '../../types';
 import { getInitials } from '../../utils/helpers';
 import StoryViewer from './StoryViewer';
+import StoryConfirmationModal from './StoryConfirmationModal';
+import { useToast } from '../../components/Toast/ToastContext';
 import './StoriesFeed.css';
 
 const StoriesFeed: React.FC = () => {
@@ -40,25 +42,45 @@ const StoriesFeed: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [selectedFile, setSelectedFile] = React.useState<{file: File, url: string, isVideo: boolean} | null>(null);
+  const { showToast } = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setLoading(true);
-      try {
-        const res = await uploadFile(e.target.files[0]);
-        const storyData: any = {};
-        if (res.type === 'video') {
-          storyData.video = res.url;
-        } else {
-          storyData.image = res.url;
-        }
-        await api.post('/stories', storyData);
-        fetchStories(); // Refresh stories
-      } catch (error) {
-        console.error('Failed to create story', error);
-        alert('Failed to upload story');
-      } finally {
-        setLoading(false);
+      const file = e.target.files[0];
+      const url = URL.createObjectURL(file);
+      const isVideo = file.type.startsWith('video/');
+      setSelectedFile({ file, url, isVideo });
+    }
+  };
+
+  const confirmCreateStory = async (caption: string) => {
+    if (!selectedFile) return;
+    setLoading(true);
+    try {
+      const res = await uploadFile(selectedFile.file);
+      const storyData: any = { caption };
+      if (res.type === 'video') {
+        storyData.video = res.url;
+      } else {
+        storyData.image = res.url;
       }
+      await api.post('/stories', storyData);
+      fetchStories(); // Refresh stories
+      setSelectedFile(null);
+      showToast('success', 'Story published successfully!');
+    } catch (error) {
+      console.error('Failed to create story', error);
+      showToast('error', 'Failed to upload story');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelCreateStory = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -150,6 +172,17 @@ const StoriesFeed: React.FC = () => {
           onClose={() => setViewerGroupIndex(null)}
           onStoryDeleted={fetchStories}
           currentUserId={user?._id}
+        />
+      )}
+
+      {selectedFile && (
+        <StoryConfirmationModal
+          file={selectedFile.file}
+          previewUrl={selectedFile.url}
+          isVideo={selectedFile.isVideo}
+          loading={loading}
+          onConfirm={confirmCreateStory}
+          onCancel={cancelCreateStory}
         />
       )}
     </div>

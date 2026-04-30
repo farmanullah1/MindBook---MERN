@@ -21,9 +21,12 @@ const {
   commentOnPost,
   deleteComment,
   getSavedPosts,
-  toggleSavePost
+  toggleSavePost,
+  likeComment,
+  replyToComment
 } = require('../controllers/postController');
 
+router.get('/user/saved', auth, getSavedPosts); // Needs to be above /:id
 router.get('/feed', auth, getFeedPosts);
 router.get('/user/:userId', auth, getUserPosts);
 router.post('/', auth, createPost);
@@ -33,7 +36,8 @@ router.delete('/:id', auth, deletePost);
 router.put('/:id/like', auth, likePost);
 router.post('/:id/comment', auth, commentOnPost);
 router.delete('/:id/comment/:commentId', auth, deleteComment);
+router.put('/:id/comment/:commentId/like', auth, likeComment);
+router.post('/:id/comment/:commentId/reply', auth, replyToComment);
 router.put('/:id/save', auth, toggleSavePost);
-router.get('/user/saved', auth, getSavedPosts); // Needs to be above /:id
 
 module.exports = router;

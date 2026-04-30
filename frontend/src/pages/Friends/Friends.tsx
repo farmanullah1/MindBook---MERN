@@ -20,10 +20,11 @@ import './Friends.css';
 const Friends: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'my-friends' | 'requests' | 'suggestions'>('my-friends');
+  const [activeTab, setActiveTab] = useState<'my-friends' | 'requests' | 'find-friends' | 'suggestions'>('my-friends');
   const [friends, setFriends] = useState<IUser[]>([]);
   const [requests, setRequests] = useState<{ incoming: IUser[], outgoing: IUser[] }>({ incoming: [], outgoing: [] });
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [foundPeople, setFoundPeople] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -39,13 +40,19 @@ const Friends: React.FC = () => {
       } else if (activeTab === 'suggestions') {
         const res = await api.get('/users/suggestions');
         setSuggestions(res.data);
+      } else if (activeTab === 'find-friends') {
+        // Find friends will use search if query exists, otherwise maybe show some default or leave empty
+        if (searchQuery) {
+          const res = await api.get(`/users/search?q=${searchQuery}`);
+          setFoundPeople(res.data);
+        }
       }
     } catch (err) {
       console.error('Error fetching friends data:', err);
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, searchQuery]);
 
   useEffect(() => {
     fetchData();
@@ -147,6 +154,13 @@ const Friends: React.FC = () => {
               onClick={() => setActiveTab('suggestions')}
             >
               <div className="friends-nav-icon"><FiUserCheck size={20} /></div>
+              <span>Suggestions</span>
+            </button>
+            <button
+              className={`friends-nav-item ${activeTab === 'find-friends' ? 'active' : ''}`}
+              onClick={() => setActiveTab('find-friends')}
+            >
+              <div className="friends-nav-icon"><FiSearch size={20} /></div>
               <span>Find Friends</span>
             </button>
           </nav>
@@ -154,18 +168,47 @@ const Friends: React.FC = () => {
 
         {/* Main Content */}
         <main className="friends-main">
+          {/* Horizontal Tab Bar */}
+          <div className="friends-tabs-bar">
+            <button 
+              className={`friends-tab ${activeTab === 'my-friends' ? 'active' : ''}`}
+              onClick={() => setActiveTab('my-friends')}
+            >
+              My Friends
+            </button>
+            <button 
+              className={`friends-tab ${activeTab === 'requests' ? 'active' : ''}`}
+              onClick={() => setActiveTab('requests')}
+            >
+              Friend Requests
+            </button>
+            <button 
+              className={`friends-tab ${activeTab === 'suggestions' ? 'active' : ''}`}
+              onClick={() => setActiveTab('suggestions')}
+            >
+              Suggestions
+            </button>
+            <button 
+              className={`friends-tab ${activeTab === 'find-friends' ? 'active' : ''}`}
+              onClick={() => setActiveTab('find-friends')}
+            >
+              Find Friends
+            </button>
+          </div>
+
           <div className="friends-main-header">
             <h2>
               {activeTab === 'my-friends' ? 'All Friends' :
                activeTab === 'requests' ? 'Friend Requests' :
-               'People You May Know'}
+               activeTab === 'suggestions' ? 'People You May Know' :
+               'Search Results'}
             </h2>
-            {activeTab === 'my-friends' && (
+            {(activeTab === 'my-friends' || activeTab === 'find-friends') && (
               <div className="friends-search-bar">
                 <FiSearch size={16} />
                 <input
                   type="text"
-                  placeholder="Search friends..."
+                  placeholder={activeTab === 'my-friends' ? "Search friends..." : "Search for people..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -179,7 +222,7 @@ const Friends: React.FC = () => {
           </div>
 
           {loading ? renderSkeletonCards() : (
-            <>
+            <div className="animate-fade-in">
               {/* My Friends Tab */}
               {activeTab === 'my-friends' && (
                 <div className="friends-grid">
@@ -323,7 +366,38 @@ const Friends: React.FC = () => {
                   )}
                 </div>
               )}
-            </>
+
+              {/* Find Friends (Search) Tab */}
+              {activeTab === 'find-friends' && (
+                <div className="friends-grid">
+                  {foundPeople.length > 0 ? foundPeople.map(user => (
+                    <div key={user._id} className="friend-card">
+                      <Link to={`/profile/${user._id}`} className="friend-card-img">
+                        {user.profilePicture ? (
+                          <img src={user.profilePicture} alt={user.name} />
+                        ) : (
+                          <div className="friend-card-initials">{getInitials(user.name)}</div>
+                        )}
+                      </Link>
+                      <div className="friend-info">
+                        <Link to={`/profile/${user._id}`} className="friend-name">{user.name}</Link>
+                        <div className="friend-card-actions">
+                          <button className="btn btn-primary btn-sm btn-full" onClick={() => handleAddFriend(user._id, user.name)}>
+                            <FiUserPlus size={14} /> Add Friend
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="friends-empty">
+                      <div className="friends-empty-icon">🔍</div>
+                      <h3>Search for people</h3>
+                      <p>Type a name in the search bar above to find people on MindBook.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </main>
       </div>

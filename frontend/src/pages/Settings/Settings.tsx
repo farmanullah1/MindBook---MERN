@@ -202,6 +202,38 @@ const Settings: React.FC = () => {
             <>
               <div className="settings-card">
                 <div className="settings-card-header">
+                  <h2>Privacy Settings</h2>
+                  <p className="text-secondary">Manage your account privacy.</p>
+                </div>
+                <div className="settings-form">
+                  <div className="form-group">
+                    <label>Who can message me?</label>
+                    <select 
+                      className="input-field"
+                      value={user?.privacySettings?.whoCanMessageMe || 'Everyone'}
+                      onChange={(e) => handleTogglePrivacy('whoCanMessageMe', e.target.value)}
+                    >
+                      <option value="Everyone">Everyone</option>
+                      <option value="Friends">Friends</option>
+                      <option value="No one">No one</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Who can send me friend requests?</label>
+                    <select 
+                      className="input-field"
+                      value={user?.privacySettings?.whoCanSendFriendRequest || 'Everyone'}
+                      onChange={(e) => handleTogglePrivacy('whoCanSendFriendRequest', e.target.value)}
+                    >
+                      <option value="Everyone">Everyone</option>
+                      <option value="Friends of Friends">Friends of Friends</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="settings-card">
+                <div className="settings-card-header">
                   <h2>Change Password</h2>
                   <p className="text-secondary">Keep your account secure.</p>
                 </div>
@@ -300,19 +332,22 @@ const Settings: React.FC = () => {
               </div>
               <div className="settings-form">
                 {[
-                  { label: 'Friend Requests', desc: 'When someone sends you a friend request' },
-                  { label: 'Messages', desc: 'New message notifications' },
-                  { label: 'Story Replies', desc: 'When someone replies to your story' },
-                  { label: 'Group Invites', desc: 'When you are invited to a group' },
-                  { label: 'Email Notifications', desc: 'Receive updates via email' },
-                ].map(({ label, desc }) => (
-                  <div key={label} className="toggle-row">
+                  { key: 'friendRequests', label: 'Friend Requests', desc: 'When someone sends you a friend request' },
+                  { key: 'newMessages', label: 'Messages', desc: 'New message notifications' },
+                  { key: 'storyReplies', label: 'Story Replies', desc: 'When someone replies to your story' },
+                  { key: 'groupInvites', label: 'Group Invites', desc: 'When you are invited to a group' },
+                ].map(({ key, label, desc }) => (
+                  <div key={key} className="toggle-row">
                     <div className="toggle-info">
                       <span className="toggle-label">{label}</span>
                       <span className="toggle-desc">{desc}</span>
                     </div>
                     <label className="toggle-switch">
-                      <input type="checkbox" defaultChecked />
+                      <input 
+                        type="checkbox" 
+                        checked={(user?.notificationPreferences as any)?.[key] !== false} 
+                        onChange={(e) => handleToggleNotification(key, e.target.checked)}
+                      />
                       <span className="toggle-slider" />
                     </label>
                   </div>

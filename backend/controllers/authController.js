@@ -17,7 +17,7 @@ const generateToken = (userId) => {
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, gender, birthdate } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Please provide name, email, and password' });
@@ -35,24 +35,18 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      gender,
+      birthdate
     });
 
     const token = generateToken(user._id);
+    
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
     res.status(201).json({
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        profilePicture: user.profilePicture,
-        coverPicture: user.coverPicture,
-        bio: user.bio,
-        friends: user.friends,
-        friendRequests: user.friendRequests,
-        sentFriendRequests: user.sentFriendRequests,
-        createdAt: user.createdAt,
-      },
+      user: userResponse,
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -80,22 +74,12 @@ const login = async (req, res) => {
 
     const token = generateToken(user._id);
 
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
     res.json({
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        profilePicture: user.profilePicture,
-        coverPicture: user.coverPicture,
-        bio: user.bio,
-        city: user.city,
-        workplace: user.workplace,
-        friends: user.friends,
-        friendRequests: user.friendRequests,
-        sentFriendRequests: user.sentFriendRequests,
-        createdAt: user.createdAt,
-      },
+      user: userResponse,
     });
   } catch (error) {
     console.error('Login error:', error);

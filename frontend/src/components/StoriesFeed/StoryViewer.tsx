@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { FiX, FiTrash2 } from 'react-icons/fi';
+import { FiX, FiTrash2, FiSend } from 'react-icons/fi';
 import { IUserStoryGroup } from '../../types';
 import { getInitials, formatTimeAgo } from '../../utils/helpers';
 import api from '../../services/api';
@@ -278,14 +278,21 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         {currentUserId !== currentGroup.user._id && (
           <div className="story-viewer-footer" onClick={(e) => e.stopPropagation()}>
             <form className="story-reply-form" onSubmit={handleReply}>
-              <input 
-                type="text" 
-                placeholder="Send message" 
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                onFocus={() => setIsPaused(true)}
-                onBlur={() => setIsPaused(false)}
-              />
+              <div className="story-input-container">
+                <input 
+                  type="text" 
+                  placeholder="Send message" 
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  onFocus={() => setIsPaused(true)}
+                  onBlur={() => setIsPaused(false)}
+                />
+                {replyText.trim() && (
+                  <button type="submit" className="story-send-btn" disabled={isSending}>
+                    <FiSend size={18} />
+                  </button>
+                )}
+              </div>
               <div className="story-reactions-quick">
                 {emojis.map(emoji => (
                   <button 

@@ -12,7 +12,7 @@ const User = require('../models/User');
 
 const createStory = async (req, res) => {
   try {
-    const { image, video } = req.body;
+    const { image, video, caption } = req.body;
     if (!image && !video) {
       return res.status(400).json({ message: 'Image or video is required for a story' });
     }
@@ -21,6 +21,7 @@ const createStory = async (req, res) => {
       user: req.user.id,
       image: image || '',
       video: video || '',
+      caption: caption || '',
     });
 
     const populatedStory = await Story.findById(story._id).populate('user', 'name profilePicture');

@@ -167,6 +167,35 @@
   font-size: 1.25rem;
 }
 
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-radius: 18px;
+  width: fit-content;
+  margin: 4px 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.typing-indicator .dot {
+  width: 6px;
+  height: 6px;
+  background: #90949c;
+  border-radius: 50%;
+  animation: typing-bounce 1s infinite;
+}
+
+.typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
 .online-indicator {
   position: absolute;
   bottom: 4px;
@@ -216,6 +245,57 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.chat-list-item.unread .chat-item-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.chat-list-item.unread .chat-item-preview {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.message-row.me .message-bubble {
+  background: var(--brand-primary);
+  color: #000;
+  border-bottom-right-radius: 4px;
+}
+
+.message-row.them .message-bubble {
+  background: #E4E6EB;
+  color: #050505;
+  border-bottom-left-radius: 4px;
+}
+
+/* Dark mode overrides for bubbles */
+[data-theme='dark'] .message-row.them .message-bubble {
+  background: #3E4042;
+  color: #E4E6EB;
+}
+
+[data-theme='dark'] .message-row.me .message-bubble {
+  background: var(--brand-primary);
+  color: #000;
+}
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unread-badge {
+  background: var(--brand-primary);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chat-list-loading {

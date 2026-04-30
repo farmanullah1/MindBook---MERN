@@ -28,16 +28,19 @@ const ChatList: React.FC<ChatListProps> = ({ conversations, activeId, currentUse
       {conversations.map((conv) => {
         const otherParticipant = conv.participants.find(p => p._id !== currentUserId);
         const displayUser = conv.isGroup ? null : otherParticipant;
+        const isUnread = conv.unreadCount && conv.unreadCount > 0;
         
         return (
           <div 
             key={conv._id} 
-            className={`chat-list-item ${activeId === conv._id ? 'active' : ''}`}
+            className={`chat-list-item ${activeId === conv._id ? 'active' : ''} ${isUnread ? 'unread' : ''}`}
             onClick={() => onSelect(conv)}
           >
             <div className="chat-item-avatar">
               {conv.isGroup ? (
-                <div className="group-avatar-stack">👥</div>
+                <div className="group-avatar-stack">
+                  {conv.groupIcon ? <img src={conv.groupIcon} alt={conv.groupName} /> : <span>👥</span>}
+                </div>
               ) : (
                 <>
                   {displayUser?.profilePicture ? (
@@ -62,10 +65,12 @@ const ChatList: React.FC<ChatListProps> = ({ conversations, activeId, currentUse
                 <p className="chat-item-preview">
                   {conv.lastMessage ? (
                     <>
-                      {conv.lastMessage.sender.name.split(' ')[0]}: {conv.lastMessage.text}
+                      {conv.lastMessage.sender?._id === currentUserId ? 'You: ' : `${conv.lastMessage.sender?.name?.split(' ')[0] || 'User'}: `}
+                      {conv.lastMessage.text || (conv.lastMessage as any).mediaType ? (conv.lastMessage.text || 'Sent media') : ''}
                     </>
                   ) : 'No messages yet'}
                 </p>
+                {isUnread && <div className="unread-badge">{conv.unreadCount}</div>}
               </div>
             </div>
           </div>

@@ -7,6 +7,55 @@
  * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
  */
 
+/* Shared Post Styles */
+.shared-post-container {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin: 0 16px 12px;
+  overflow: hidden;
+  background: var(--bg-body);
+}
+
+.shared-post-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.shared-post-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.shared-post-author {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.shared-post-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.shared-post-content {
+  padding: 12px;
+}
+
+.shared-post-content p {
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+}
+
+.shared-media {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
 .post.card {
   padding: 0;
   border-radius: var(--radius-lg);

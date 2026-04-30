@@ -13,10 +13,10 @@ const { createNotification } = require('./notificationController');
 
 const createPost = async (req, res) => {
   try {
-    const { content, image, video, location, feeling } = req.body;
+    const { content, image, video, location, feeling, sharedPostId } = req.body;
 
-    if (!content && !image && !video) {
-      return res.status(400).json({ message: 'Post must have content, an image, or a video' });
+    if (!content && !image && !video && !sharedPostId) {
+      return res.status(400).json({ message: 'Post must have content, media, or be a share' });
     }
 
     const post = await Post.create({
@@ -26,11 +26,16 @@ const createPost = async (req, res) => {
       video: video || '',
       location: location || '',
       feeling: feeling || '',
+      sharedPost: sharedPostId || null,
       group: req.body.group || null,
     });
 
     const populatedPost = await Post.findById(post._id)
       .populate('user', 'name profilePicture')
+      .populate({
+        path: 'sharedPost',
+        populate: { path: 'user', select: 'name profilePicture' }
+      })
       .populate('comments.user', 'name profilePicture');
 
     res.status(201).json(populatedPost);
@@ -63,6 +68,10 @@ const getFeedPosts = async (req, res) => {
 
     const posts = await Post.find(query)
       .populate('user', 'name profilePicture')
+      .populate({
+        path: 'sharedPost',
+        populate: { path: 'user', select: 'name profilePicture' }
+      })
       .populate('comments.user', 'name profilePicture')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -324,6 +333,72 @@ const toggleSavePost = async (req, res) => {
   }
 };
 
+const likeComment = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    const likeIndex = comment.likes.indexOf(req.user.id);
+    if (likeIndex === -1) {
+      comment.likes.push(req.user.id);
+      if (comment.user.toString() !== req.user.id) {
+        await createNotification(comment.user, req.user.id, 'like', post._id);
+      }
+    } else {
+      comment.likes.splice(likeIndex, 1);
+    }
+
+    await post.save();
+
+    const updatedPost = await Post.findById(post._id)
+      .populate('user', 'name profilePicture')
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
+
+    res.json(updatedPost);
+  } catch (error) {
+    console.error('LikeComment error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const replyToComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ message: 'Reply text is required' });
+
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    comment.replies.push({
+      user: req.user.id,
+      text,
+    });
+
+    await post.save();
+
+    if (comment.user.toString() !== req.user.id) {
+      await createNotification(comment.user, req.user.id, 'comment', post._id, text.substring(0, 50));
+    }
+
+    const updatedPost = await Post.findById(post._id)
+      .populate('user', 'name profilePicture')
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
+
+    res.json(updatedPost);
+  } catch (error) {
+    console.error('ReplyToComment error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createPost,
   getFeedPosts,
@@ -336,4 +411,6 @@ module.exports = {
   deleteComment,
   getSavedPosts,
   toggleSavePost,
+  likeComment,
+  replyToComment,
 };

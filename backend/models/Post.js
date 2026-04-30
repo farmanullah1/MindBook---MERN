@@ -22,6 +22,30 @@ const commentSchema = new mongoose.Schema(
       trim: true,
       maxlength: [500, 'Comment cannot exceed 500 characters'],
     },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    replies: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        text: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -65,6 +89,10 @@ const postSchema = new mongoose.Schema(
     feeling: {
       type: String,
       default: '',
+    },
+    sharedPost: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post',
     },
     comments: [commentSchema],
   },

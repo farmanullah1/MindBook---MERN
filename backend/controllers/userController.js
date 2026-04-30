@@ -44,13 +44,17 @@ const getAllUsers = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    if (req.params.id !== req.user.id && req.originalUrl.includes(req.params.id)) {
+    if (req.params.id && req.params.id !== req.user.id && req.originalUrl.includes(req.params.id)) {
       return res.status(403).json({ message: 'You can only update your own profile' });
     }
 
     const userId = req.params.id || req.user.id;
     
-    const allowedFields = ['name', 'bio', 'location', 'work', 'education', 'profilePicture', 'coverPicture'];
+    const allowedFields = [
+      'name', 'bio', 'location', 'work', 'education', 
+      'profilePicture', 'coverPicture', 'privacySettings', 
+      'notificationPreferences', 'gender', 'birthdate', 'mobileNumber'
+    ];
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
@@ -354,6 +358,16 @@ const getUserMedia = async (req, res) => {
 
 const deleteAccount = async (req, res) => {
   try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required to delete account' });
+    }
+    const user = await User.findById(req.user.id);
+    const bcrypt = require('bcryptjs');
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect password' });
+    }
     await User.findByIdAndDelete(req.user.id);
     // Ideally cleanup posts, comments, etc.
     res.json({ message: 'Account deleted successfully' });

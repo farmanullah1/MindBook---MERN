@@ -24,6 +24,10 @@ const storySchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    caption: {
+      type: String,
+      default: '',
+    },
     createdAt: {
       type: Date,
       default: Date.now,

@@ -46,7 +46,7 @@ export const fetchUserPosts = createAsyncThunk(
 
 export const createPost = createAsyncThunk(
   'posts/create',
-  async (postData: { content: string; image?: string }, { rejectWithValue }) => {
+  async (postData: { content: string; image?: string; video?: string; sharedPostId?: string }, { rejectWithValue }) => {
     try {
       const response = await api.post('/posts', postData);
       return response.data;
@@ -88,6 +88,30 @@ export const deleteComment = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete comment');
+    }
+  }
+);
+
+export const likeComment = createAsyncThunk(
+  'posts/likeComment',
+  async ({ postId, commentId }: { postId: string; commentId: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/posts/${postId}/comment/${commentId}/like`);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to like comment');
+    }
+  }
+);
+
+export const replyToComment = createAsyncThunk(
+  'posts/replyToComment',
+  async ({ postId, commentId, text }: { postId: string; commentId: string; text: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/posts/${postId}/comment/${commentId}/reply`, { text });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reply to comment');
     }
   }
 );
@@ -212,6 +236,14 @@ const postsSlice = createSlice({
         state.userPosts = updatePostInList(state.userPosts, action.payload);
       })
       .addCase(deleteComment.fulfilled, (state, action) => {
+        state.posts = updatePostInList(state.posts, action.payload);
+        state.userPosts = updatePostInList(state.userPosts, action.payload);
+      })
+      .addCase(likeComment.fulfilled, (state, action) => {
+        state.posts = updatePostInList(state.posts, action.payload);
+        state.userPosts = updatePostInList(state.userPosts, action.payload);
+      })
+      .addCase(replyToComment.fulfilled, (state, action) => {
         state.posts = updatePostInList(state.posts, action.payload);
         state.userPosts = updatePostInList(state.userPosts, action.payload);
       })

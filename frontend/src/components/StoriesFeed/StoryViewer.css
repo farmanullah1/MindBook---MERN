@@ -160,23 +160,47 @@
 
 .story-reply-form {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
-.story-reply-form input {
+.story-input-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.story-input-container input {
+  width: 100%;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
-  padding: 10px 16px;
+  padding: 10px 40px 10px 16px;
   color: white;
-  font-size: 14px;
-  outline: none;
-  transition: background 0.2s;
+  font-size: 0.9375rem;
 }
 
-.story-reply-form input:focus {
+.story-input-container input:focus {
   background: rgba(255, 255, 255, 0.2);
+  border-color: var(--brand-primary);
+}
+
+.story-send-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.story-send-btn:hover {
+  transform: scale(1.2);
 }
 
 .story-reactions-quick {

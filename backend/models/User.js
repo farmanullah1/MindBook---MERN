@@ -75,9 +75,25 @@ const userSchema = new mongoose.Schema(
     birthdate: {
       type: Date,
     },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female', 'Non-binary', 'Prefer not to say', ''],
+      default: '',
+    },
     website: {
       type: String,
       default: '',
+    },
+    privacy: {
+      messageRequests: { type: String, enum: ['Everyone', 'Friends', 'No one'], default: 'Everyone' },
+      friendRequests: { type: String, enum: ['Everyone', 'Friends of Friends'], default: 'Everyone' }
+    },
+    notifications: {
+      newMessages: { type: Boolean, default: true },
+      friendRequests: { type: Boolean, default: true },
+      storyReplies: { type: Boolean, default: true },
+      groupInvites: { type: Boolean, default: true },
+      emailUpdates: { type: Boolean, default: true }
     },
     friends: [
       {

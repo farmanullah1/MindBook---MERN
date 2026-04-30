@@ -28,7 +28,10 @@ import {
   deletePost, 
   updatePost, 
   deleteComment,
-  toggleSavePost
+  toggleSavePost,
+  likeComment,
+  replyToComment,
+  createPost
 } from '../../store/slices/postsSlice';
 import { IPost } from '../../types';
 import { formatTimeAgo, getInitials } from '../../utils/helpers';
@@ -56,6 +59,13 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [editContent, setEditContent] = React.useState(post.content);
+
+  const [replyToCommentId, setReplyToCommentId] = React.useState<string | null>(null);
+  const [replyText, setReplyText] = React.useState('');
+
+  const [showShareModal, setShowShareModal] = React.useState(false);
+  const [shareText, setShareText] = React.useState('');
+  const [isSharing, setIsSharing] = React.useState(false);
 
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -103,6 +113,33 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
     if (window.confirm('Delete this comment?')) {
       await dispatch(deleteComment({ postId: post._id, commentId }));
     }
+  };
+
+  const handleCommentLike = async (commentId: string) => {
+    await dispatch(likeComment({ postId: post._id, commentId }));
+  };
+
+  const handleReplySubmit = async (e: React.FormEvent, commentId: string) => {
+    e.preventDefault();
+    if (!replyText.trim()) return;
+    await dispatch(replyToComment({ postId: post._id, commentId, text: replyText.trim() }));
+    setReplyText('');
+    setReplyToCommentId(null);
+  };
+
+  const handleShare = async () => {
+    if (isSharing) return;
+    setIsSharing(true);
+    
+    await dispatch(createPost({ 
+      content: shareText.trim(), 
+      sharedPostId: post.sharedPost ? post.sharedPost._id : post._id 
+    }));
+    
+    setShowShareModal(false);
+    setShareText('');
+    setIsSharing(false);
+    alert('Post shared successfully!');
   };
 
   const linkifyContent = (text: string) => {
@@ -242,6 +279,30 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
         </div>
       )}
 
+      {/* Shared Post Preview */}
+      {post.sharedPost && typeof post.sharedPost === 'object' && post.sharedPost.user && (
+        <div className="shared-post-container">
+          <div className="shared-post-header">
+            <Link to={`/profile/${post.sharedPost.user._id}`} className="shared-post-user">
+              {post.sharedPost.user.profilePicture ? (
+                <img src={post.sharedPost.user.profilePicture} alt={post.sharedPost.user.name} className="avatar avatar-xs" />
+              ) : (
+                <div className="avatar avatar-xs">{getInitials(post.sharedPost.user.name)}</div>
+              )}
+              <div className="shared-post-meta">
+                <span className="shared-post-author">{post.sharedPost.user.name}</span>
+                <span className="shared-post-time">{formatTimeAgo(post.sharedPost.createdAt)}</span>
+              </div>
+            </Link>
+          </div>
+          <div className="shared-post-content">
+            <p>{post.sharedPost.content}</p>
+            {post.sharedPost.image && <img src={post.sharedPost.image} alt="Shared" className="shared-media" />}
+            {post.sharedPost.video && <video src={post.sharedPost.video} controls className="shared-media" />}
+          </div>
+        </div>
+      )}
+
       {/* Engagement Stats */}
       {(post.likes.length > 0 || post.comments.length > 0) && (
         <div className="post-stats">
@@ -287,7 +348,7 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
           <FiMessageCircle size={18} />
           <span>Comment</span>
         </button>
-        <button className="post-action-btn">
+        <button className="post-action-btn" onClick={() => setShowShareModal(true)}>
           <FiShare2 size={18} />
           <span>Share</span>
         </button>
@@ -314,7 +375,7 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
                     <div className="avatar avatar-sm">{getInitials(comment.user.name)}</div>
                   )}
                 </Link>
-                <div className="comment-body">
+                <div className="comment-body" style={{ flex: 1 }}>
                   <div className="comment-bubble">
                     <div className="comment-header-row">
                       <Link to={`/profile/${comment.user._id}`} className="comment-author">
@@ -327,12 +388,83 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
                       )}
                     </div>
                     <p className="comment-text">{comment.text}</p>
+                    {(comment.likes?.length ?? 0) > 0 && (
+                      <div className="comment-likes-badge">
+                        <span className="like-icon-micro">👍</span>
+                        {comment.likes?.length}
+                      </div>
+                    )}
                   </div>
                   <div className="comment-meta">
                     <span className="comment-time">{formatTimeAgo(comment.createdAt)}</span>
-                    <button className="comment-like-btn">Like</button>
-                    <button className="comment-reply-btn">Reply</button>
+                    <button 
+                      className={`comment-like-btn ${user && comment.likes?.includes(user._id) ? 'liked-text' : ''}`}
+                      onClick={() => handleCommentLike(comment._id)}
+                    >
+                      Like
+                    </button>
+                    <button 
+                      className="comment-reply-btn"
+                      onClick={() => setReplyToCommentId(replyToCommentId === comment._id ? null : comment._id)}
+                    >
+                      Reply
+                    </button>
                   </div>
+                  
+                  {/* Nested Replies */}
+                  {comment.replies && comment.replies.length > 0 && (
+                    <div className="replies-container" style={{ marginTop: '8px' }}>
+                      {comment.replies.map(reply => (
+                        <div key={reply._id} className="comment reply" style={{ marginTop: '8px' }}>
+                          <Link to={`/profile/${reply.user._id}`}>
+                            {reply.user.profilePicture ? (
+                              <img src={reply.user.profilePicture} alt={reply.user.name} className="avatar avatar-xs" style={{ width: '24px', height: '24px' }} />
+                            ) : (
+                              <div className="avatar avatar-xs" style={{ width: '24px', height: '24px', fontSize: '10px' }}>{getInitials(reply.user.name)}</div>
+                            )}
+                          </Link>
+                          <div className="comment-body">
+                            <div className="comment-bubble" style={{ padding: '6px 10px' }}>
+                              <Link to={`/profile/${reply.user._id}`} className="comment-author" style={{ fontSize: '0.8rem' }}>
+                                {reply.user.name}
+                              </Link>
+                              <p className="comment-text" style={{ fontSize: '0.85rem' }}>{reply.text}</p>
+                            </div>
+                            <div className="comment-meta" style={{ fontSize: '0.75rem' }}>
+                              <span className="comment-time">{formatTimeAgo(reply.createdAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Reply Input */}
+                  {replyToCommentId === comment._id && (
+                    <form className="comment-form reply-form" onSubmit={(e) => handleReplySubmit(e, comment._id)} style={{ marginTop: '8px' }}>
+                      {user?.profilePicture ? (
+                        <img src={user.profilePicture} alt={user.name} className="avatar avatar-xs" style={{ width: '24px', height: '24px' }} />
+                      ) : (
+                        <div className="avatar avatar-xs" style={{ width: '24px', height: '24px', fontSize: '10px' }}>{user ? getInitials(user.name) : '?'}</div>
+                      )}
+                      <div className="comment-input-wrapper">
+                        <input
+                          type="text"
+                          className="comment-input"
+                          style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                          placeholder="Write a reply..."
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          autoFocus
+                        />
+                        {replyText.trim() && (
+                          <button type="submit" className="comment-send-btn">
+                            <FiSend size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  )}
                 </div>
               </div>
             ))}
@@ -361,6 +493,47 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
               </div>
             </form>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
+            <motion.div 
+              className="modal-content card"
+              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+            >
+              <div className="modal-header">
+                <h3>Share Post</h3>
+                <button className="close-btn" onClick={() => setShowShareModal(false)}>&times;</button>
+              </div>
+              <div className="modal-body">
+                <textarea
+                  className="input-field"
+                  placeholder="Say something about this..."
+                  value={shareText}
+                  onChange={(e) => setShareText(e.target.value)}
+                  style={{ minHeight: '80px', marginBottom: '16px' }}
+                />
+                <div className="shared-post-preview" style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', opacity: 0.8 }}>
+                  <strong>{post.user?.name || 'User'}</strong>
+                  <p style={{ fontSize: '0.9rem', marginTop: '4px' }}>
+                    {post.content ? (post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '')) : (post.image ? 'Image Post' : (post.video ? 'Video Post' : 'Post'))}
+                  </p>
+                </div>
+              </div>
+              <div className="modal-footer" style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button className="btn btn-secondary" onClick={() => setShowShareModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleShare} disabled={isSharing}>
+                  {isSharing ? 'Sharing...' : 'Share Now'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </motion.article>

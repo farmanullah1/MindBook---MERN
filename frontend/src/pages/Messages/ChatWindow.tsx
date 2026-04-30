@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { FiSend, FiImage, FiSmile, FiInfo, FiMoreVertical, FiPaperclip, FiX, FiMic } from 'react-icons/fi';
+import { FiSend, FiImage, FiSmile, FiInfo, FiMoreVertical, FiPaperclip, FiX, FiMic, FiVideo, FiPhone } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchMessages, sendMessage as sendMsgAction, acceptRequest, fetchConversations, setActiveConversation, deleteMessage, deleteForEveryone } from '../../store/slices/chatSlice';
 import { IConversation, IUser, IMessage } from '../../types';
@@ -207,7 +207,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
         <div className="chat-header-left">
           <div className="chat-header-avatar">
             {conversation.isGroup ? (
-              <div className="group-avatar-stack">👥</div>
+              <div className="group-avatar-stack">
+                {conversation.groupIcon ? <img src={conversation.groupIcon} alt={conversation.groupName} /> : <span>👥</span>}
+              </div>
             ) : (
               <>
                 {otherUser?.profilePicture ? (
@@ -221,14 +223,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
           </div>
           <div className="chat-header-info">
             <h3>{conversation.isGroup ? conversation.groupName : otherUser?.name}</h3>
-            <p>{otherUser?.isOnline ? 'Active now' : `Active ${formatTimeAgo(otherUser?.lastActive || '')}`}</p>
+            <p className={otherUser?.isOnline ? 'online-status' : 'offline-status'}>
+              {otherUser?.isOnline ? 'Active now' : `Active ${formatTimeAgo(otherUser?.lastActive || '')}`}
+            </p>
           </div>
         </div>
         <div className="chat-header-right">
-          <button className="icon-btn" onClick={() => setShowInfo(!showInfo)}>
+          <button className="icon-btn-modern" title="Start a voice call"><FiPhone size={20} /></button>
+          <button className="icon-btn-modern" title="Start a video call"><FiVideo size={20} /></button>
+          <button className="icon-btn-modern" onClick={() => setShowInfo(!showInfo)} title="Conversation information">
             <FiInfo size={20} color={showInfo ? 'var(--brand-primary)' : 'inherit'} />
           </button>
-          <button className="icon-btn"><FiMoreVertical size={20} /></button>
         </div>
       </div>
 

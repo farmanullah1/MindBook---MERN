@@ -20,19 +20,40 @@ export interface IUser {
   relationshipStatus?: 'Single' | 'In a relationship' | 'Engaged' | 'Married' | 'It\'s complicated' | 'In an open relationship' | 'Widowed' | 'Separated' | 'Divorced' | '';
   hometown?: string;
   birthdate?: string;
+  gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say' | '';
+  mobileNumber?: string;
   website?: string;
   savedPosts?: string[];
   friends: IUser[];
   friendRequests: IUser[];
   sentFriendRequests: IUser[];
+  privacySettings?: {
+    whoCanMessageMe: 'Everyone' | 'Friends' | 'No one';
+    whoCanSendFriendRequest: 'Everyone' | 'Friends of Friends';
+  };
+  notificationPreferences?: {
+    newMessages: boolean;
+    friendRequests: boolean;
+    storyReplies: boolean;
+    groupInvites: boolean;
+  };
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface ICommentReply {
+  _id: string;
+  user: IUser;
+  text: string;
+  createdAt: string;
 }
 
 export interface IComment {
   _id: string;
   user: IUser;
   text: string;
+  likes?: string[];
+  replies?: ICommentReply[];
   createdAt: string;
 }
 
@@ -69,6 +90,7 @@ export interface IConversation {
   groupIcon?: string;
   groupAdmin?: string;
   groupMembers?: IUser[];
+  unreadCount?: number;
   lastMessage?: {
     text: string;
     sender: { _id: string, name: string };
@@ -145,6 +167,7 @@ export interface IPost {
   video?: string;
   location?: string;
   feeling?: string;
+  sharedPost?: IPost;
   likes: string[];
   comments: IComment[];
   createdAt: string;
@@ -174,6 +197,9 @@ export interface LoginCredentials {
 
 export interface RegisterCredentials {
   name: string;
-  email: string;
+  email?: string;
+  mobileNumber?: string;
   password: string;
+  birthdate?: string;
+  gender?: string;
 }
