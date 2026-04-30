@@ -59,11 +59,16 @@ export interface IComment {
   createdAt: string;
 }
 
+export interface IReaction {
+  user: string;
+  type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry';
+}
+
 export interface INotification {
   _id: string;
   user: string;
   fromUser: IUser;
-  type: 'like' | 'comment' | 'friend_request' | 'friend_accept';
+  type: 'like' | 'love' | 'haha' | 'wow' | 'sad' | 'angry' | 'comment' | 'reply' | 'friend_request' | 'friend_accept';
   post?: { _id: string; content: string };
   text?: string;
   read: boolean;
@@ -182,7 +187,7 @@ export interface IPost {
   location?: string;
   feeling?: string;
   sharedPost?: IPost;
-  likes: string[];
+  reactions: IReaction[];
   comments: IComment[];
   createdAt: string;
   updatedAt?: string;

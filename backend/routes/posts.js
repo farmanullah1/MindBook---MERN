@@ -17,7 +17,7 @@ const {
   getPost,
   updatePost,
   deletePost,
-  likePost,
+  reactToPost,
   commentOnPost,
   deleteComment,
   getSavedPosts,
@@ -33,7 +33,7 @@ router.post('/', auth, createPost);
 router.get('/:id', auth, getPost);
 router.put('/:id', auth, updatePost);
 router.delete('/:id', auth, deletePost);
-router.put('/:id/like', auth, likePost);
+router.put('/:id/react', auth, reactToPost);
 router.post('/:id/comment', auth, commentOnPost);
 router.delete('/:id/comment/:commentId', auth, deleteComment);
 router.put('/:id/comment/:commentId/like', auth, likeComment);

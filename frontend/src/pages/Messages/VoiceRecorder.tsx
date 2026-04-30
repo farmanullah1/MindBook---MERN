@@ -113,6 +113,19 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
         </div>
       </div>
 
+      <motion.div 
+        className="slide-to-cancel"
+        drag="x"
+        dragConstraints={{ left: -100, right: 0 }}
+        onDragEnd={(_, info) => {
+          if (info.offset.x < -80) {
+            onCancel();
+          }
+        }}
+      >
+        <span className="slide-text">← Slide to cancel</span>
+      </motion.div>
+
       <div className="recorder-actions">
         <button className="recorder-action-btn cancel" onClick={onCancel} title="Cancel">
           <FiTrash2 size={18} />

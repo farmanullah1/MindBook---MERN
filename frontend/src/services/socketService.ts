@@ -10,6 +10,8 @@
 import { io, Socket } from 'socket.io-client';
 import { store } from '../store/store';
 import { addMessage, updateOnlineStatus, setTypingStatus } from '../store/slices/chatSlice';
+import { addNotification } from '../store/slices/notificationsSlice';
+import { setOnlineUsers, userJoined, userLeft } from '../store/slices/onlineSlice';
 
 class SocketService {
   private socket: Socket | null = null;
@@ -24,12 +26,21 @@ class SocketService {
       this.socket?.emit('join', userId);
     });
 
+    this.socket.on('online-users-list', (userIds: string[]) => {
+      store.dispatch(setOnlineUsers(userIds));
+    });
+
     this.socket.on('receive-message', (message) => {
       store.dispatch(addMessage(message));
     });
 
-    this.socket.on('status-updated', (data) => {
+    this.socket.on('status-updated', (data: { userId: string, isOnline: boolean }) => {
       store.dispatch(updateOnlineStatus(data));
+      if (data.isOnline) {
+        store.dispatch(userJoined(data.userId));
+      } else {
+        store.dispatch(userLeft(data.userId));
+      }
     });
 
     this.socket.on('user-typing', (data) => {
@@ -38,6 +49,10 @@ class SocketService {
 
     this.socket.on('user-stopped-typing', (data) => {
       store.dispatch(setTypingStatus({ ...data, isTyping: false }));
+    });
+    
+    this.socket.on('notification-received', (notification) => {
+      store.dispatch(addNotification(notification));
     });
 
     this.socket.on('disconnect', () => {

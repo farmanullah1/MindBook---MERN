@@ -11,6 +11,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
+const User = require('./models/User');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
@@ -40,29 +41,37 @@ app.set('io', io);
 connectDB();
 initCleanupJob();
 
-// Socket.io Logic
-const User = require('./models/User');
+// Track online users
+const onlineUsers = new Map(); // userId -> socketId
 
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
   socket.on('join', (userId) => {
     socket.join(userId);
+    onlineUsers.set(userId, socket.id);
+    socket.userId = userId; // Store userId on socket for disconnect handler
+    
     console.log(`User ${userId} joined their room`);
-    // Update online status
+    
+    // Update online status in DB
     User.findByIdAndUpdate(userId, { isOnline: true }).exec();
+    
+    // Broadcast status to everyone
     io.emit('status-updated', { userId, isOnline: true });
+    
+    // Send current online users to the joining user
+    const onlineList = Array.from(onlineUsers.keys());
+    socket.emit('online-users-list', onlineList);
   });
 
   socket.on('send-message', (data) => {
-    // data: { conversationId, sender, recipients, message }
     data.recipients.forEach(recipientId => {
       io.to(recipientId).emit('receive-message', data.message);
     });
   });
 
   socket.on('typing-start', (data) => {
-    // data: { conversationId, userId, userName, recipients }
     data.recipients.forEach(recipientId => {
       io.to(recipientId).emit('user-typing', data);
     });
@@ -75,9 +84,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
-    // We could handle offline status here, but usually it's better to wait a bit 
-    // or use a heartbeat to avoid status flickering on page refresh
+    console.log('Client disconnected:', socket.id);
+    if (socket.userId) {
+      onlineUsers.delete(socket.userId);
+      User.findByIdAndUpdate(socket.userId, { isOnline: false }).exec();
+      io.emit('status-updated', { userId: socket.userId, isOnline: false });
+    }
   });
 });
 

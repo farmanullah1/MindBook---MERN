@@ -191,23 +191,36 @@ const deletePost = async (req, res) => {
   }
 };
 
-const likePost = async (req, res) => {
+const reactToPost = async (req, res) => {
   try {
+    const { type = 'like' } = req.body;
     const post = await Post.findById(req.params.id);
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const likeIndex = post.likes.indexOf(req.user.id);
+    // Find if user already reacted
+    const existingReactionIndex = post.reactions.findIndex(
+      (r) => r.user.toString() === req.user.id
+    );
 
-    if (likeIndex === -1) {
-      post.likes.push(req.user.id);
-      if (post.user.toString() !== req.user.id) {
-        await createNotification(post.user, req.user.id, 'like', post._id);
+    if (existingReactionIndex !== -1) {
+      // If same type, remove it (toggle off)
+      if (post.reactions[existingReactionIndex].type === type) {
+        post.reactions.splice(existingReactionIndex, 1);
+      } else {
+        // Change reaction type
+        post.reactions[existingReactionIndex].type = type;
       }
     } else {
-      post.likes.splice(likeIndex, 1);
+      // Add new reaction
+      post.reactions.push({ user: req.user.id, type });
+      
+      // Notify only on new reaction
+      if (post.user.toString() !== req.user.id) {
+        await createNotification(req.app.get('io'), post.user, req.user.id, type, post._id);
+      }
     }
 
     await post.save();
@@ -219,7 +232,7 @@ const likePost = async (req, res) => {
 
     res.json(updatedPost);
   } catch (error) {
-    console.error('LikePost error:', error);
+    console.error('Error reacting to post:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -246,7 +259,7 @@ const commentOnPost = async (req, res) => {
     await post.save();
     
     if (post.user.toString() !== req.user.id) {
-      await createNotification(post.user, req.user.id, 'comment', post._id, text.substring(0, 50));
+      await createNotification(req.app.get('io'), post.user, req.user.id, 'comment', post._id, text.substring(0, 50));
     }
 
     const updatedPost = await Post.findById(post._id)
@@ -393,7 +406,7 @@ const replyToComment = async (req, res) => {
     await post.save();
 
     if (comment.user.toString() !== req.user.id) {
-      await createNotification(comment.user, req.user.id, 'comment', post._id, text.substring(0, 50));
+      await createNotification(req.app.get('io'), comment.user, req.user.id, 'comment', post._id, text.substring(0, 50));
     }
 
     const updatedPost = await Post.findById(post._id)
@@ -415,7 +428,7 @@ module.exports = {
   getPost,
   updatePost,
   deletePost,
-  likePost,
+  reactToPost,
   commentOnPost,
   deleteComment,
   getSavedPosts,

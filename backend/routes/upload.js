@@ -26,7 +26,7 @@ router.post('/', auth, upload.single('media'), (req, res) => {
   else if (isAudio) type = 'audio';
 
   res.json({ 
-    url: `http://localhost:5000/uploads/${req.file.filename}`,
+    url: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`,
     type
   });
 });

@@ -40,7 +40,12 @@ export const markAllAsRead = createAsyncThunk('notifications/markAllAsRead', asy
 const notificationsSlice = createSlice({
   name: 'notifications',
   initialState,
-  reducers: {},
+  reducers: {
+    addNotification: (state, action) => {
+      state.items.unshift(action.payload);
+      state.unreadCount += 1;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchNotifications.pending, (state) => {
@@ -65,4 +70,5 @@ const notificationsSlice = createSlice({
   },
 });
 
+export const { addNotification } = notificationsSlice.actions;
 export default notificationsSlice.reducer;

@@ -56,14 +56,14 @@ export const createPost = createAsyncThunk(
   }
 );
 
-export const likePost = createAsyncThunk(
-  'posts/like',
-  async (postId: string, { rejectWithValue }) => {
+export const reactToPost = createAsyncThunk(
+  'posts/react',
+  async ({ postId, type = 'like' }: { postId: string; type?: string }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/posts/${postId}/like`);
+      const response = await api.put(`/posts/${postId}/react`, { type });
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to like post');
+      return rejectWithValue(error.response?.data?.message || 'Failed to react to post');
     }
   }
 );
@@ -206,30 +206,36 @@ const postsSlice = createSlice({
         state.posts.unshift(action.payload);
         state.userPosts.unshift(action.payload);
       })
-      .addCase(likePost.pending, (state, action) => {
-        const postId = action.meta.arg;
+      .addCase(reactToPost.pending, (state, action) => {
+        const { postId, type = 'like' } = action.meta.arg;
         const userId = localStorage.getItem('minds_books_user') ? JSON.parse(localStorage.getItem('minds_books_user')!)._id : null;
         
         if (userId) {
-          const updateLikes = (posts: IPost[]) => {
+          const updateReactions = (posts: IPost[]) => {
             const post = posts.find(p => p._id === postId);
             if (post) {
-              const index = post.likes.indexOf(userId);
-              if (index === -1) post.likes.push(userId);
-              else post.likes.splice(index, 1);
+              const existingIndex = post.reactions.findIndex(r => r.user === userId);
+              if (existingIndex !== -1) {
+                if (post.reactions[existingIndex].type === type) {
+                  post.reactions.splice(existingIndex, 1);
+                } else {
+                  post.reactions[existingIndex].type = type as any;
+                }
+              } else {
+                post.reactions.push({ user: userId, type: type as any });
+              }
             }
           };
-          updateLikes(state.posts);
-          updateLikes(state.userPosts);
+          updateReactions(state.posts);
+          updateReactions(state.userPosts);
         }
       })
-      .addCase(likePost.fulfilled, (state, action) => {
+      .addCase(reactToPost.fulfilled, (state, action) => {
         state.posts = updatePostInList(state.posts, action.payload);
         state.userPosts = updatePostInList(state.userPosts, action.payload);
       })
-      .addCase(likePost.rejected, (state, action) => {
-        // In a real app, we might want to revert the optimistic change here
-        // But for now, the next fetch or a re-sync will fix it
+      .addCase(reactToPost.rejected, (state, action) => {
+        // Revert or sync
       })
       .addCase(commentOnPost.fulfilled, (state, action) => {
         state.posts = updatePostInList(state.posts, action.payload);

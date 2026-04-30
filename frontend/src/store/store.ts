@@ -12,6 +12,7 @@ import authReducer from './slices/authSlice';
 import postsReducer from './slices/postsSlice';
 import notificationsReducer from './slices/notificationsSlice';
 import chatReducer from './slices/chatSlice';
+import onlineReducer from './slices/onlineSlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     posts: postsReducer,
     notifications: notificationsReducer,
     chat: chatReducer,
+    online: onlineReducer,
   },
 });
 

@@ -23,7 +23,7 @@ import {
 } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
-  likePost, 
+  reactToPost, 
   commentOnPost, 
   deletePost, 
   updatePost, 
@@ -35,6 +35,7 @@ import {
 } from '../../store/slices/postsSlice';
 import { IPost } from '../../types';
 import { formatTimeAgo, getInitials } from '../../utils/helpers';
+import MediaViewer from '../MediaViewer/MediaViewer';
 import './Post.css';
 
 interface PostProps {
@@ -44,16 +45,31 @@ interface PostProps {
   canManage?: boolean;
 }
 
+const REACTION_TYPES = [
+  { type: 'like', label: 'Like', icon: '👍', color: '#1877f2' },
+  { type: 'love', label: 'Love', icon: '❤️', color: '#e0245e' },
+  { type: 'haha', label: 'Haha', icon: '😆', color: '#f7b928' },
+  { type: 'wow', label: 'Wow', icon: '😮', color: '#f7b928' },
+  { type: 'sad', label: 'Sad', icon: '😢', color: '#1877f2' },
+  { type: 'angry', label: 'Angry', icon: '😠', color: '#f02849' },
+] as const;
+
 const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const [showComments, setShowComments] = React.useState(false);
   const [commentText, setCommentText] = React.useState('');
   const [showMenu, setShowMenu] = React.useState(false);
+  const [showReactions, setShowReactions] = React.useState(false);
+  const [viewerData, setViewerData] = React.useState<{ url: string, type: 'image' | 'video' } | null>(null);
   const [isLiking, setIsLiking] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
+  const reactionTimerRef = React.useRef<any>(null);
 
-  const isLiked = user ? post.likes.includes(user._id) : false;
+  const userReaction = user ? post.reactions.find(r => r.user === user._id) : null;
+  const isReacted = !!userReaction;
+  const currentReaction = REACTION_TYPES.find(r => r.type === userReaction?.type) || REACTION_TYPES[0];
+
   const isOwner = user?._id === post.user._id;
   const isSaved = user?.savedPosts?.includes(post._id) || false;
 
@@ -77,11 +93,33 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLike = async () => {
-    if (isLiking) return;
+  const handleReact = async (type: string) => {
     setIsLiking(true);
-    await dispatch(likePost(post._id));
+    setShowReactions(false);
+    try {
+      await dispatch(reactToPost({ postId: post._id, type })).unwrap();
+    } catch (error) {
+      console.error('Failed to react:', error);
+    }
     setIsLiking(false);
+  };
+
+  const handleLikeClick = () => {
+    handleReact('like');
+  };
+
+  const handleMouseEnterReactions = () => {
+    if (reactionTimerRef.current) clearTimeout(reactionTimerRef.current);
+    reactionTimerRef.current = setTimeout(() => {
+      setShowReactions(true);
+    }, 500);
+  };
+
+  const handleMouseLeaveReactions = () => {
+    if (reactionTimerRef.current) clearTimeout(reactionTimerRef.current);
+    reactionTimerRef.current = setTimeout(() => {
+      setShowReactions(false);
+    }, 500);
   };
 
   const handleComment = async (e: React.FormEvent) => {
@@ -269,13 +307,16 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
 
       {/* Post Media */}
       {post.image && (
-        <div className="post-image">
+        <div className="post-image" onClick={() => setViewerData({ url: post.image!, type: 'image' })}>
           <img src={post.image} alt="Post" loading="lazy" />
         </div>
       )}
       {post.video && (
-        <div className="post-video">
-          <video src={post.video} controls />
+        <div className="post-video" onClick={() => setViewerData({ url: post.video!, type: 'video' })}>
+          <video src={post.video} />
+          <div className="video-play-overlay">
+            <FiThumbsUp size={48} color="white" /> {/* Placeholder for play icon, using react-icons */}
+          </div>
         </div>
       )}
 
@@ -304,12 +345,18 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
       )}
 
       {/* Engagement Stats */}
-      {(post.likes.length > 0 || post.comments.length > 0) && (
+      {(post.reactions.length > 0 || post.comments.length > 0) && (
         <div className="post-stats">
-          {post.likes.length > 0 && (
+          {post.reactions.length > 0 && (
             <div className="post-likes-count">
-              <span className="like-icon-small">👍</span>
-              <span>{post.likes.length}</span>
+              <div className="reaction-icons-stacked">
+                {Array.from(new Set(post.reactions.map(r => r.type))).slice(0, 3).map(type => (
+                  <span key={type} className="reaction-icon-mini">
+                    {REACTION_TYPES.find(r => r.type === type)?.icon}
+                  </span>
+                ))}
+              </div>
+              <span>{post.reactions.length}</span>
             </div>
           )}
           {post.comments.length > 0 && (
@@ -326,20 +373,56 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
       {/* Action Buttons */}
       <div className="post-actions-divider" />
       <div className="post-actions">
-        <motion.button
-          className={`post-action-btn ${isLiked ? 'liked' : ''}`}
-          onClick={handleLike}
-          disabled={isLiking}
-          id={`like-btn-${post._id}`}
-          whileTap={{ scale: 0.9 }}
+        <div 
+          className="reaction-wrapper"
+          onMouseEnter={handleMouseEnterReactions}
+          onMouseLeave={handleMouseLeaveReactions}
         >
-          <motion.div
-            animate={isLiked ? { scale: [1, 1.5, 1], rotate: [0, 15, 0] } : {}}
+          <AnimatePresence>
+            {showReactions && (
+              <motion.div 
+                className="reactions-popover card"
+                initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                animate={{ opacity: 1, y: -50, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.8 }}
+              >
+                {REACTION_TYPES.map((r, i) => (
+                  <motion.button
+                    key={r.type}
+                    className="reaction-btn"
+                    whileHover={{ scale: 1.3, y: -5 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => handleReact(r.type)}
+                    title={r.label}
+                  >
+                    <span className="reaction-emoji">{r.icon}</span>
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            className={`post-action-btn ${isReacted ? 'reacted' : ''}`}
+            onClick={handleLikeClick}
+            disabled={isLiking}
+            id={`like-btn-${post._id}`}
+            style={{ color: isReacted ? currentReaction.color : 'inherit' }}
           >
-            <FiThumbsUp size={18} />
-          </motion.div>
-          <span>Like</span>
-        </motion.button>
+            <motion.div
+              animate={isReacted ? { scale: [1, 1.4, 1] } : {}}
+            >
+              {isReacted ? (
+                <span className="current-reaction-icon">{currentReaction.icon}</span>
+              ) : (
+                <FiThumbsUp size={18} />
+              )}
+            </motion.div>
+            <span>{isReacted ? currentReaction.label : 'Like'}</span>
+          </motion.button>
+        </div>
         <button
           className="post-action-btn"
           onClick={() => setShowComments(!showComments)}
@@ -536,6 +619,13 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
           </div>
         )}
       </AnimatePresence>
+      {viewerData && (
+        <MediaViewer 
+          url={viewerData.url} 
+          type={viewerData.type} 
+          onClose={() => setViewerData(null)} 
+        />
+      )}
     </motion.article>
   );
 };

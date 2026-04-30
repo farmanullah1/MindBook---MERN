@@ -72,11 +72,11 @@ const postSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-    likes: [
+    reactions: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        type: { type: String, enum: ['like', 'love', 'haha', 'wow', 'sad', 'angry'], default: 'like' }
+      }
     ],
     group: {
       type: mongoose.Schema.Types.ObjectId,

@@ -29,6 +29,7 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import MobileBottomNav from './components/Navbar/MobileBottomNav';
 import { FiArrowUp } from 'react-icons/fi';
 import { socketService } from './services/socketService';
+import NotificationToast from './components/NotificationToast/NotificationToast';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { token } = useAppSelector((state) => state.auth);
@@ -109,6 +110,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <ScrollToTop />
+      {user && <NotificationToast />}
       <Routes>
         <Route
           path="/login"

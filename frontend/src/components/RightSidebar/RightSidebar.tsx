@@ -17,6 +17,7 @@ import './RightSidebar.css';
 
 const RightSidebar: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
+  const { onlineUserIds } = useAppSelector((state) => state.online);
   const [suggestions, setSuggestions] = React.useState<IUser[]>([]);
   const [friendRequests, setFriendRequests] = React.useState<IUser[]>([]);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
@@ -140,7 +141,7 @@ const RightSidebar: React.FC = () => {
                     <div className="rs-avatar rs-avatar-initials">{getInitials(friend.name)}</div>
                   )}
                   <span className="rs-contact-name">{friend.name}</span>
-                  <span className="rs-online-dot" />
+                  {onlineUserIds.includes(friend._id) && <span className="rs-online-dot" />}
                 </div>
               ))}
             </div>

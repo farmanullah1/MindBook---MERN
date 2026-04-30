@@ -43,6 +43,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
   const [feeling, setFeeling] = React.useState<{name: string, emoji: string} | null>(null);
   const [showFeelingPicker, setShowFeelingPicker] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [addToStory, setAddToStory] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -59,6 +60,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
     setMediaFile(null);
     setMediaPreview('');
     setMediaType('');
+    setAddToStory(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -91,18 +93,26 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
       }
 
       if (groupId) {
-        // For groups, we might want to just use the api directly to avoid cluttering main feed state
-        // or we can update the slice to handle group posts.
-        // For now, let's just use the API and the callback.
         const res = await api.post('/posts', postData);
         if (onPostCreated) onPostCreated(res.data);
       } else {
         await dispatch(createPost(postData)).unwrap();
       }
+
+      // Handle Story creation if checked
+      if (addToStory && uploadedUrl) {
+        await api.post('/stories', {
+          media: uploadedUrl,
+          type: type === 'video' ? 'video' : 'image',
+          text: content.trim()
+        });
+      }
+
       setContent('');
       setMediaFile(null);
       setFeeling(null);
       setLocation('');
+      setAddToStory(false);
       setShowFeelingPicker(false);
       setShowLocationInput(false);
       removeMedia();
@@ -206,6 +216,20 @@ const CreatePost: React.FC<CreatePostProps> = ({ groupId, onPostCreated }) => {
                 <span className="feeling-name">{f.name}</span>
               </button>
             ))}
+          </div>
+        )}
+
+        {mediaPreview && (
+          <div className="add-to-story-toggle">
+            <label className="checkbox-container">
+              <input 
+                type="checkbox" 
+                checked={addToStory} 
+                onChange={(e) => setAddToStory(e.target.checked)} 
+              />
+              <span className="checkmark"></span>
+              Also add to Story
+            </label>
           </div>
         )}
         

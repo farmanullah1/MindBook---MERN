@@ -8,7 +8,7 @@
  */
 
 const Event = require('../models/Event');
-const Notification = require('../models/Notification');
+const { createNotification } = require('./notificationController');
 
 // Create event
 exports.createEvent = async (req, res) => {
@@ -75,12 +75,7 @@ exports.rsvpEvent = async (req, res) => {
       
       // Notify creator if someone else RSVPs
       if (event.creator.toString() !== req.user.id) {
-        await Notification.create({
-          user: event.creator,
-          fromUser: req.user.id,
-          type: 'event_rsvp',
-          text: `RSVP'd to your event: ${event.title}`,
-        });
+        await createNotification(req.app.get('io'), event.creator, req.user.id, 'event_rsvp', null, `RSVP'd to your event: ${event.title}`);
       }
     }
 

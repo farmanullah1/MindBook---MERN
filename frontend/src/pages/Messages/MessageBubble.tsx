@@ -57,24 +57,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         return (
           <div className="message-audio">
             <audio src={message.mediaUrl} controls />
-            {message.mediaMetadata?.duration && (
+            {(message.mediaMetadata?.duration || message.mediaMetadata?.length) && (
               <span className="audio-duration">
                 {message.mediaType === 'voice' ? 'Voice message • ' : ''}
-                {Math.round(message.mediaMetadata.duration)}s
+                {Math.round(message.mediaMetadata.duration || message.mediaMetadata.length)}s
               </span>
             )}
           </div>
         );
       case 'file':
+      case 'document':
         return (
           <a href={message.mediaUrl} target="_blank" rel="noopener noreferrer" className="message-file" download>
             <FiFile size={20} />
             <div className="file-info">
-              <span className="file-name">{message.mediaMetadata?.fileName || 'Attachment'}</span>
+              <span className="file-name">{message.mediaMetadata?.fileName || message.mediaMetadata?.originalName || 'Attachment'}</span>
               <span className="file-size">
-                {message.mediaMetadata?.size 
-                  ? `${(message.mediaMetadata.size / (1024 * 1024)).toFixed(2)} MB` 
-                  : (message.mediaMetadata?.fileSize ? `${(message.mediaMetadata.fileSize / 1024).toFixed(1)} KB` : '')}
+                {(() => {
+                  const size = message.mediaMetadata?.size || message.mediaMetadata?.fileSize;
+                  if (!size) return '';
+                  if (size > 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+                  return `${(size / 1024).toFixed(1)} KB`;
+                })()}
               </span>
             </div>
           </a>

@@ -17,13 +17,14 @@ import { socketService } from '../../services/socketService';
 import MessageBubble from './MessageBubble';
 import ChatInfo from './ChatInfo';
 import ForwardModal from './ForwardModal';
-import MediaViewer from './MediaViewer';
+import MediaViewer from '../../components/MediaViewer/MediaViewer';
 import VoiceRecorder from './VoiceRecorder';
 import AttachmentMenu from './AttachmentMenu';
 import MediaPreviewModal from './MediaPreviewModal';
 import api from '../../services/api';
 import './Messages.css';
 import { AnimatePresence } from 'framer-motion';
+import Picker, { EmojiClickData } from 'emoji-picker-react';
 
 interface ChatWindowProps {
   conversation: IConversation;
@@ -47,6 +48,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser, onBa
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<any>(null);
   const attachmentBtnRef = useRef<HTMLButtonElement>(null);
+  const emojiBtnRef = useRef<HTMLButtonElement>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const otherUser = conversation.participants.find(p => p._id !== currentUser._id);
   const recipients = conversation.participants.map(p => p._id).filter(id => id !== currentUser._id);
@@ -128,6 +131,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser, onBa
     setSelectedFiles(Array.from(files));
     setShowAttachmentMenu(false);
   };
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    setInputText(prev => prev + emojiData.emoji);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiBtnRef.current && !emojiBtnRef.current.contains(event.target as Node)) {
+        const picker = document.querySelector('.emoji-picker-container');
+        if (picker && !picker.contains(event.target as Node)) {
+          setShowEmojiPicker(false);
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSendMedia = async (files: File[], caption: string) => {
     setSelectedFiles([]); // Close modal
@@ -343,9 +363,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser, onBa
                 <button type="button" className="icon-btn" onClick={() => setIsRecording(true)} title="Voice message">
                   <FiMic size={20} />
                 </button>
-                <button type="button" className="icon-btn" title="Emoji picker">
-                  <FiSmile size={20} />
-                </button>
+                <div className="emoji-picker-wrapper">
+                  <button 
+                    type="button" 
+                    className={`icon-btn ${showEmojiPicker ? 'active' : ''}`} 
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
+                    title="Emoji picker"
+                    ref={emojiBtnRef}
+                  >
+                    <FiSmile size={20} />
+                  </button>
+                  {showEmojiPicker && (
+                    <div className="emoji-picker-container">
+                      <Picker 
+                        onEmojiClick={onEmojiClick}
+                        autoFocusSearch={false}
+                        theme={document.body.classList.contains('dark-mode') ? 'dark' : 'light'}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="chat-input-wrapper">
                 <textarea 

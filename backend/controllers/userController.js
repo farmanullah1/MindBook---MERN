@@ -113,7 +113,7 @@ const sendFriendRequest = async (req, res) => {
     await user.save();
     await friend.save();
 
-    await createNotification(friendId, userId, 'friend_request');
+    await createNotification(req.app.get('io'), friendId, userId, 'friend_request');
 
     res.json({ message: 'Friend request sent successfully' });
   } catch (error) {
@@ -147,7 +147,7 @@ const acceptFriendRequest = async (req, res) => {
     await user.save();
     await friend.save();
 
-    await createNotification(friendId, userId, 'friend_accept');
+    await createNotification(req.app.get('io'), friendId, userId, 'friend_accept');
 
     res.json({ message: 'Friend request accepted' });
   } catch (error) {
