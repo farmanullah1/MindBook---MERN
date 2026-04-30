@@ -7,8 +7,9 @@
  * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
  */
 
-import React, { useState, useRef, useEffect } from 'react';
-import { FiMic, FiSquare, FiTrash2, FiSend } from 'react-icons/fi';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { FiMic, FiX, FiSend, FiTrash2 } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import './VoiceRecorder.css';
 
 interface VoiceRecorderProps {
@@ -19,14 +20,15 @@ interface VoiceRecorderProps {
 const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
@@ -39,8 +41,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
 
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(blob);
-        stream.getTracks().forEach(track => track.stop());
+        // We'll pass the duration when the user clicks send
+        // Since this is a simple implementation, we'll store the duration in a ref or state
       };
 
       mediaRecorder.start();
@@ -55,13 +57,25 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
     }
   };
 
-  const stopRecording = () => {
+  const stopAndSend = () => {
     if (mediaRecorderRef.current && isRecording) {
+      const duration = recordingTime;
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        onStop(blob, duration);
+        cleanup();
+      };
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      if (timerRef.current) clearInterval(timerRef.current);
     }
   };
+
+  const cleanup = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    setIsRecording(false);
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -71,43 +85,44 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
 
   useEffect(() => {
     startRecording();
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        mediaRecorderRef.current.stop();
-      }
-    };
-  }, []);
-
-  const handleSend = () => {
-    if (audioBlob) {
-      onStop(audioBlob, recordingTime);
-    }
-  };
+    return () => cleanup();
+  }, [cleanup]);
 
   return (
-    <div className="voice-recorder-overlay">
-      <div className="recorder-status">
-        <div className={`recording-dot ${isRecording ? 'active' : ''}`} />
-        <span className="recording-time">{formatTime(recordingTime)}</span>
+    <motion.div 
+      className="voice-recorder-bar"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+    >
+      <div className="recording-info">
+        <motion.div 
+          className="recording-dot"
+          animate={{ opacity: [1, 0.4, 1] }}
+          transition={{ duration: 1, repeat: Infinity }}
+        />
+        <span className="recording-timer">{formatTime(recordingTime)}</span>
+        <div className="recording-wave">
+          {[...Array(5)].map((_, i) => (
+            <motion.div 
+              key={i}
+              className="wave-bar"
+              animate={{ height: [4, Math.random() * 16 + 4, 4] }}
+              transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="recorder-controls">
-        <button className="recorder-btn cancel" onClick={onCancel}>
-          <FiTrash2 size={20} />
+      <div className="recorder-actions">
+        <button className="recorder-action-btn cancel" onClick={onCancel} title="Cancel">
+          <FiTrash2 size={18} />
         </button>
-        
-        {isRecording ? (
-          <button className="recorder-btn stop" onClick={stopRecording}>
-            <FiSquare size={20} />
-          </button>
-        ) : (
-          <button className="recorder-btn send" onClick={handleSend}>
-            <FiSend size={20} />
-          </button>
-        )}
+        <button className="recorder-action-btn send" onClick={stopAndSend} title="Send voice message">
+          <FiSend size={18} />
+        </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

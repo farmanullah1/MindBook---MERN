@@ -1,16 +1,17 @@
 /**
  * CodeDNA
- * Login.tsx — core functionality
+ * Login.tsx — login page
  * exports: none
  * used_by: internal
- * rules: Follow project conventions
- * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ * rules: Glassmorphism, centered layout, premium branding
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Redesigned with glassmorphism
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loginUser, clearError } from '../../store/slices/authSlice';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import './Auth.css';
 
 const Login: React.FC = () => {
@@ -18,22 +19,23 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { loading, error, user } = useAppSelector((state) => state.auth);
 
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       navigate('/');
     }
   }, [user, navigate]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       dispatch(clearError());
     };
   }, [dispatch]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
     const result = await dispatch(loginUser({ email: email.trim(), password }));
@@ -43,93 +45,94 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="auth-page" id="login-page">
+    <div className="auth-page">
       <div className="auth-container">
-        {/* Left Section - Branding */}
-        <div className="auth-branding">
-          <div className="auth-logo">
-            <svg width="60" height="60" viewBox="0 0 40 40" fill="none">
-              <circle cx="20" cy="20" r="20" fill="var(--brand-primary)" />
-              <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="24" fontWeight="900" fontFamily="Arial, sans-serif">M</text>
+        {/* Branding Section */}
+        <div className="auth-branding-center">
+          <div className="auth-logo-large">
+            <svg width="80" height="80" viewBox="0 0 40 40" fill="none">
+              <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#F7B928" />
+                  <stop offset="100%" stopColor="#FFD700" />
+                </linearGradient>
+              </defs>
+              <circle cx="20" cy="20" r="20" fill="url(#logoGrad)" />
+              <text x="50%" y="62%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="24" fontWeight="900">M</text>
             </svg>
-            <h1 className="auth-title">MindBook</h1>
+            <h1 className="auth-title-large">MindBook</h1>
           </div>
-          <p className="auth-tagline">
-            Connect with friends and the world around you on MindBook.
+          <p className="auth-tagline-center">
+            The world's most vibrant community. Connect, share, and grow together.
           </p>
         </div>
 
-        {/* Right Section - Login Form */}
-        <div className="auth-card">
-          <form className="auth-form" onSubmit={handleSubmit} id="login-form">
-            {error && (
-              <div className="auth-error" id="login-error">
-                {error}
-              </div>
-            )}
+        {/* Login Card */}
+        <div className="auth-card-glass">
+          <div className="auth-card-header">
+            <h2>Welcome Back</h2>
+            <p>Log in to your account to continue</p>
+          </div>
 
+          <form className="auth-form" onSubmit={handleLogin}>
+            {error && <div className="auth-error">{error}</div>}
+            
             <div className="input-group">
               <input
                 type="email"
-                className="input-field"
+                className="input-field-modern"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                id="login-email"
                 autoComplete="email"
               />
             </div>
 
             <div className="input-group">
-              <input
-                type="password"
-                className="input-field"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                id="login-password"
-                autoComplete="current-password"
-              />
+              <div className="password-wrapper">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="input-field-modern"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+                <button type="button" className="pw-eye-modern" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
-              className="btn btn-primary btn-full btn-lg"
+              className="auth-btn-primary"
               disabled={loading || !email.trim() || !password.trim()}
-              id="login-submit"
             >
-              {loading ? (
-                <span className="btn-loading">
-                  <span className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
-                  Logging in...
-                </span>
-              ) : (
-                'Log In'
-              )}
+              {loading ? 'Logging in...' : 'Log In'}
             </button>
 
-            <div className="auth-link-wrapper">
-              <Link to="/register" className="auth-forgot-link">Forgotten password?</Link>
+            <div className="auth-footer-links">
+              <a href="#forgot" className="forgot-password">Forgotten password?</a>
             </div>
 
-            <div className="auth-divider">
-              <span />
-            </div>
+            <div className="auth-divider">or</div>
 
-            <div className="auth-link-wrapper">
-              <Link to="/register" className="btn btn-secondary btn-lg auth-create-btn" id="create-account-link">
-                Create new account
+            <div className="auth-footer-links" style={{ marginTop: '0' }}>
+              <Link to="/register" className="create-account-link">
+                <button type="button" className="btn btn-success btn-lg" style={{ width: '100%', fontWeight: 700 }}>
+                  Create new account
+                </button>
               </Link>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="auth-footer">
-        <p>MindBook © 2024. A social media experience.</p>
+      <footer className="auth-footer-brand">
+        <p>MindBook © {new Date().getFullYear()}. Built for community.</p>
       </footer>
     </div>
   );

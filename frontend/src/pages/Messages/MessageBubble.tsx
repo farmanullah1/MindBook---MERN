@@ -43,22 +43,30 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         return <img src={message.mediaUrl} alt="Sent media" className="message-media image" onClick={() => onMediaClick?.(message.mediaUrl!, 'image')} />;
       case 'video':
         return <video src={message.mediaUrl} className="message-media video" onClick={() => onMediaClick?.(message.mediaUrl!, 'video')} />;
+      case 'voice':
       case 'audio':
         return (
           <div className="message-audio">
             <audio src={message.mediaUrl} controls />
             {message.mediaMetadata?.duration && (
-              <span className="audio-duration">{Math.round(message.mediaMetadata.duration)}s</span>
+              <span className="audio-duration">
+                {message.mediaType === 'voice' ? 'Voice message • ' : ''}
+                {Math.round(message.mediaMetadata.duration)}s
+              </span>
             )}
           </div>
         );
-      case 'document':
+      case 'file':
         return (
-          <a href={message.mediaUrl} target="_blank" rel="noopener noreferrer" className="message-file">
+          <a href={message.mediaUrl} target="_blank" rel="noopener noreferrer" className="message-file" download>
             <FiFile size={20} />
             <div className="file-info">
               <span className="file-name">{message.mediaMetadata?.fileName || 'Attachment'}</span>
-              <span className="file-size">{message.mediaMetadata?.fileSize ? `${(message.mediaMetadata.fileSize / 1024).toFixed(1)} KB` : ''}</span>
+              <span className="file-size">
+                {message.mediaMetadata?.size 
+                  ? `${(message.mediaMetadata.size / (1024 * 1024)).toFixed(2)} MB` 
+                  : (message.mediaMetadata?.fileSize ? `${(message.mediaMetadata.fileSize / 1024).toFixed(1)} KB` : '')}
+              </span>
             </div>
           </a>
         );

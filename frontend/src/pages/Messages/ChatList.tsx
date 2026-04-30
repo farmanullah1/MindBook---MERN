@@ -1,10 +1,10 @@
 /**
  * CodeDNA
- * ChatList.tsx — core functionality
+ * ChatList.tsx — conversation list component
  * exports: none
  * used_by: internal
- * rules: Follow project conventions
- * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ * rules: 50x50 circular avatars, high-visibility unread badges
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Redesigned rows for modern UI
  */
 
 import React from 'react';
@@ -65,12 +65,12 @@ const ChatList: React.FC<ChatListProps> = ({ conversations, activeId, currentUse
                 <p className="chat-item-preview">
                   {conv.lastMessage ? (
                     <>
-                      {conv.lastMessage.sender?._id === currentUserId ? 'You: ' : `${conv.lastMessage.sender?.name?.split(' ')[0] || 'User'}: `}
-                      {conv.lastMessage.text || (conv.lastMessage as any).mediaType ? (conv.lastMessage.text || 'Sent media') : ''}
+                      {conv.lastMessage.sender?._id === currentUserId ? 'You: ' : ''}
+                      {conv.lastMessage.text || (conv.lastMessage as any).mediaType ? (conv.lastMessage.text || 'Sent an attachment') : ''}
                     </>
                   ) : 'No messages yet'}
                 </p>
-                {isUnread && <div className="unread-badge">{conv.unreadCount}</div>}
+                {isUnread && <div className="unread-badge" />}
               </div>
             </div>
           </div>

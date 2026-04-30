@@ -36,7 +36,8 @@ const createPost = async (req, res) => {
         path: 'sharedPost',
         populate: { path: 'user', select: 'name profilePicture' }
       })
-      .populate('comments.user', 'name profilePicture');
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
 
     res.status(201).json(populatedPost);
   } catch (error) {
@@ -73,6 +74,7 @@ const getFeedPosts = async (req, res) => {
         populate: { path: 'user', select: 'name profilePicture' }
       })
       .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -99,6 +101,7 @@ const getUserPosts = async (req, res) => {
     })
       .populate('user', 'name profilePicture')
       .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture')
       .sort({ createdAt: -1 });
 
     res.json(posts);
@@ -112,7 +115,8 @@ const getPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
       .populate('user', 'name profilePicture')
-      .populate('comments.user', 'name profilePicture');
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });

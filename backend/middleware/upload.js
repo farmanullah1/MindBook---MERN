@@ -9,34 +9,48 @@
 
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directories exist
+const uploadDir = 'uploads/messages/';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, uploadDir);
   },
   filename(req, file, cb) {
-    cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
   },
 });
 
-const checkFileType = (file, cb) => {
-  const filetypes = /jpg|jpeg|png|gif|webp|mp4|mov|avi|webm|mp3|wav|ogg|pdf|doc|docx|xls|xlsx|txt/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = /image|video|audio|pdf|msword|wordprocessingml|spreadsheet|text/.test(file.mimetype);
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm',
+    'audio/mpeg', 'audio/mp4', 'audio/ogg', 'audio/webm', 'audio/wav',
+    'application/pdf', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain', 'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  ];
 
-  if (extname && mimetype) {
-    return cb(null, true);
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
   } else {
-    cb('Error: File type not supported!');
+    cb(new Error('Invalid file type'), false);
   }
 };
 
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  },
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
+  fileFilter,
 });
 
 module.exports = upload;

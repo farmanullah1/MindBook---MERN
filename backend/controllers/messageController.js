@@ -62,19 +62,47 @@ const sendMessage = async (req, res) => {
   }
 };
 
+const getMediaType = (mimetype) => {
+  if (mimetype.startsWith('image/')) return 'image';
+  if (mimetype.startsWith('video/')) return 'video';
+  if (mimetype.startsWith('audio/')) {
+    // Distinguish between general audio and voice recordings if needed
+    // For now, if it's webm audio, we'll treat it as voice if that's the convention
+    return 'audio';
+  }
+  const docs = [
+    'application/pdf', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain', 'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  ];
+  if (docs.includes(mimetype)) return 'document';
+  return 'file';
+};
+
 const uploadMessageMedia = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const mediaUrl = `/uploads/${req.file.filename}`;
+    const mediaUrl = `/uploads/messages/${req.file.filename}`;
+    const mediaType = getMediaType(req.file.mimetype);
+    
     const mediaMetadata = {
       fileName: req.file.originalname,
-      fileSize: req.file.size
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype
     };
 
-    res.json({ mediaUrl, mediaMetadata });
+    res.json({ 
+      success: true,
+      mediaUrl, 
+      mediaType,
+      mediaMetadata 
+    });
   } catch (error) {
     console.error('UploadMessageMedia error:', error);
     res.status(500).json({ message: 'Server error' });

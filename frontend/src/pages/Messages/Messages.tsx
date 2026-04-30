@@ -1,15 +1,15 @@
 /**
  * CodeDNA
- * Messages.tsx — core functionality
+ * Messages.tsx — main messenger page
  * exports: none
  * used_by: internal
- * rules: Follow project conventions
- * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ * rules: Handle mobile drawer state for responsive layout
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Implemented mobile drawer state
  */
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { FiPlus, FiEdit } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiArrowLeft } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchConversations, setActiveConversation, getOrCreateConversation } from '../../store/slices/chatSlice';
 import Navbar from '../../components/Navbar/Navbar';
@@ -30,6 +30,7 @@ const Messages: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<IUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     dispatch(fetchConversations());
@@ -61,6 +62,7 @@ const Messages: React.FC = () => {
       const conv = conversations.find(c => c._id === state.conversationId);
       if (conv) {
         dispatch(setActiveConversation(conv));
+        setIsSidebarOpen(false);
       }
     }
   }, [location.state, conversations, dispatch]);
@@ -72,11 +74,16 @@ const Messages: React.FC = () => {
 
   const requestCount = conversations.filter(c => c.status === 'pending' && c.participants[1]._id === user?._id).length;
 
+  const handleSelectConversation = (conv: any) => {
+    dispatch(setActiveConversation(conv));
+    setIsSidebarOpen(false); // Close sidebar on mobile after selection
+  };
+
   return (
     <div className="messages-page">
       <Navbar />
       <div className="messages-container">
-        <div className="messages-sidebar">
+        <div className={`messages-sidebar ${isSidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header">
             <div className="sidebar-title-row">
               <h1>Chats</h1>
@@ -110,50 +117,60 @@ const Messages: React.FC = () => {
             </div>
           </div>
           
-          {searchTerm.trim().length > 1 ? (
-            <div className="search-results-list">
-              <h3>People & Groups</h3>
-              {isSearching ? (
-                <div className="search-loading">Searching...</div>
-              ) : searchResults.length > 0 ? (
-                searchResults.map(u => (
-                  <div key={u._id} className="search-result-item" onClick={() => {
-                    dispatch(getOrCreateConversation(u._id));
-                    setSearchTerm('');
-                  }}>
-                    {u.profilePicture ? (
-                      <img src={u.profilePicture} alt={u.name} className="avatar-sm" />
-                    ) : (
-                      <div className="avatar-sm initials">{getInitials(u.name)}</div>
-                    )}
-                    <span>{u.name}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="no-results">No people or groups found.</div>
-              )}
-            </div>
-          ) : (
-            <>
-              <NewChatSuggestions />
-              <ChatList 
-                conversations={filteredConversations} 
-                activeId={activeConversation?._id}
-                currentUserId={user?._id || ''}
-                onSelect={(c) => dispatch(setActiveConversation(c))}
-                loading={loading}
-              />
-            </>
-          )}
+          <div className="chat-list-container">
+            {searchTerm.trim().length > 1 ? (
+              <div className="search-results-list">
+                <h3 style={{ padding: '16px 16px 8px', fontSize: '14px', color: 'var(--text-secondary)' }}>People & Groups</h3>
+                {isSearching ? (
+                  <div className="search-loading" style={{ padding: '16px', textAlign: 'center' }}>Searching...</div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map(u => (
+                    <div key={u._id} className="search-result-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', cursor: 'pointer' }} onClick={() => {
+                      dispatch(getOrCreateConversation(u._id));
+                      setSearchTerm('');
+                      setIsSidebarOpen(false);
+                    }}>
+                      {u.profilePicture ? (
+                        <img src={u.profilePicture} alt={u.name} className="avatar-sm" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+                      ) : (
+                        <div className="avatar-sm initials" style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--brand-gradient)', color: 'white', display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center' }}>{getInitials(u.name)}</div>
+                      )}
+                      <span style={{ fontWeight: 500 }}>{u.name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-results" style={{ padding: '16px', textAlign: 'center', color: 'var(--text-secondary)' }}>No people or groups found.</div>
+                )}
+              </div>
+            ) : (
+              <>
+                <NewChatSuggestions />
+                <ChatList 
+                  conversations={filteredConversations} 
+                  activeId={activeConversation?._id}
+                  currentUserId={user?._id || ''}
+                  onSelect={handleSelectConversation}
+                  loading={loading}
+                />
+              </>
+            )}
+          </div>
         </div>
         <div className="messages-main">
           {activeConversation ? (
-            <ChatWindow conversation={activeConversation} currentUser={user!} />
+            <ChatWindow 
+              conversation={activeConversation} 
+              currentUser={user!} 
+              onBack={() => setIsSidebarOpen(true)}
+            />
           ) : (
             <div className="no-chat-selected">
               <div className="no-chat-icon">💬</div>
               <h2>Select a chat to start messaging</h2>
               <p>Choose from your existing conversations or start a new one.</p>
+              <button className="btn btn-primary" style={{ marginTop: '20px' }} onClick={() => setIsSidebarOpen(true)}>
+                View Conversations
+              </button>
             </div>
           )}
         </div>

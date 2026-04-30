@@ -14,6 +14,7 @@ const path = require('path');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
+const { initCleanupJob } = require('./utils/cleanup');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -35,6 +36,7 @@ const io = require('socket.io')(server, {
 });
 
 connectDB();
+initCleanupJob();
 
 // Socket.io Logic
 const User = require('./models/User');

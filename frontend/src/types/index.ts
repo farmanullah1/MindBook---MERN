@@ -39,6 +39,8 @@ export interface IUser {
   };
   createdAt: string;
   updatedAt?: string;
+  isOnline?: boolean;
+  lastActive?: string;
 }
 
 export interface ICommentReply {
@@ -74,7 +76,17 @@ export interface IMessage {
   sender: IUser;
   text: string;
   mediaUrl: string;
-  mediaType: 'image' | 'video' | 'audio' | 'file' | '';
+  mediaType: 'image' | 'video' | 'audio' | 'voice' | 'file' | 'story_reply' | '';
+  mediaMetadata?: {
+    mimeType?: string;
+    width?: number;
+    height?: number;
+    duration?: number;
+    size?: number;
+    fileName?: string;
+    fileSize?: number;
+  };
+  thumbnailUrl?: string;
   isDeleted: boolean;
   deletedFor: string[];
   readBy: string[];
@@ -97,6 +109,7 @@ export interface IConversation {
     createdAt: string;
   };
   updatedAt: string;
+  status?: string;
 }
 
 export interface ChatState {
@@ -144,6 +157,7 @@ export interface IGroup {
   isAdmin?: boolean;
   isModerator?: boolean;
   isPending?: boolean;
+  category?: string;
 }
 
 export interface IEvent {
@@ -172,6 +186,7 @@ export interface IPost {
   comments: IComment[];
   createdAt: string;
   updatedAt?: string;
+  isPinned?: boolean;
 }
 
 export interface AuthState {

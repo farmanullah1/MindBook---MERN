@@ -49,7 +49,7 @@ class SocketService {
     this.socket?.emit('send-message', data);
   }
 
-  emitTyping(data: { conversationId: string, userId: string, recipients: string[], isTyping: boolean }) {
+  emitTyping(data: { conversationId: string, userId: string, userName: string, recipients: string[], isTyping: boolean }) {
     this.socket?.emit(data.isTyping ? 'typing-start' : 'typing-stop', data);
   }
 

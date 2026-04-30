@@ -31,14 +31,18 @@ const messageSchema = new mongoose.Schema(
     },
     mediaType: {
       type: String,
-      enum: ['image', 'video', 'audio', 'document', 'story_reply', ''],
+      enum: ['image', 'video', 'audio', 'document', 'voice', 'story_reply', ''],
       default: '',
     },
     mediaMetadata: {
       fileName: { type: String },
       fileSize: { type: Number },
+      mimeType: { type: String },
+      width: { type: Number }, // for images/videos
+      height: { type: Number }, // for images/videos
       duration: { type: Number } // for audio/video
     },
+    thumbnailUrl: { type: String }, // for video thumbnails
     isDeleted: {
       type: Boolean,
       default: false,

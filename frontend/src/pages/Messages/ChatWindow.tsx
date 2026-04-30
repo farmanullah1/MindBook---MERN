@@ -1,14 +1,14 @@
 /**
  * CodeDNA
- * ChatWindow.tsx — core functionality
+ * ChatWindow.tsx — main chat window
  * exports: none
  * used_by: internal
- * rules: Follow project conventions
- * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
+ * rules: Support mobile back navigation
+ * agent: gemini-3-1-pro | google | 2026-04-30 | init | Added onBack and improved typing UI
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { FiSend, FiImage, FiSmile, FiInfo, FiMoreVertical, FiPaperclip, FiX, FiMic, FiVideo, FiPhone } from 'react-icons/fi';
+import { FiSend, FiImage, FiSmile, FiInfo, FiMoreVertical, FiPaperclip, FiX, FiMic, FiVideo, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchMessages, sendMessage as sendMsgAction, acceptRequest, fetchConversations, setActiveConversation, deleteMessage, deleteForEveryone } from '../../store/slices/chatSlice';
 import { IConversation, IUser, IMessage } from '../../types';
@@ -19,15 +19,19 @@ import ChatInfo from './ChatInfo';
 import ForwardModal from './ForwardModal';
 import MediaViewer from './MediaViewer';
 import VoiceRecorder from './VoiceRecorder';
+import AttachmentMenu from './AttachmentMenu';
+import MediaPreviewModal from './MediaPreviewModal';
 import api from '../../services/api';
 import './Messages.css';
+import { AnimatePresence } from 'framer-motion';
 
 interface ChatWindowProps {
   conversation: IConversation;
   currentUser: IUser;
+  onBack: () => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser, onBack }) => {
   const dispatch = useAppDispatch();
   const { messages, typingUsers } = useAppSelector(state => state.chat);
   const currentTyping = typingUsers[conversation._id] || [];
@@ -38,8 +42,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
   const [isRecording, setIsRecording] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [viewerMedia, setViewerMedia] = useState<{ url: string; type: string } | null>(null);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<any>(null);
+  const attachmentBtnRef = useRef<HTMLButtonElement>(null);
 
   const otherUser = conversation.participants.find(p => p._id !== currentUser._id);
   const recipients = conversation.participants.map(p => p._id).filter(id => id !== currentUser._id);
@@ -80,6 +87,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
       socketService.emitTyping({
         conversationId: conversation._id,
         userId: currentUser._id,
+        userName: currentUser.name,
         recipients,
         isTyping: false
       });
@@ -88,7 +96,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
     }
   };
 
-  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTyping = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setInputText(e.target.value);
 
     if (!isTyping) {
@@ -116,51 +124,65 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
     }, 3000);
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleFileSelect = (files: FileList) => {
+    setSelectedFiles(Array.from(files));
+    setShowAttachmentMenu(false);
+  };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleSendMedia = async (files: File[], caption: string) => {
+    setSelectedFiles([]); // Close modal
+    
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('media', file);
+      formData.append('conversationId', conversation._id);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('conversationId', conversation._id);
+      try {
+        const res = await api.post('/conversations/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        const msgData = {
+          conversationId: conversation._id,
+          text: caption, // Apply caption to the first file or all? Usually first or as a separate message.
+          mediaUrl: res.data.mediaUrl,
+          mediaType: res.data.mediaType,
+          mediaMetadata: res.data.mediaMetadata
+        };
 
-    try {
-      const res = await api.post('/conversations/upload', formData);
-      const msgData = {
-        conversationId: conversation._id,
-        text: '',
-        mediaUrl: res.data.mediaUrl,
-        mediaType: res.data.mediaType,
-        mediaMetadata: res.data.mediaMetadata
-      };
+        const newMsg = await dispatch(sendMsgAction(msgData)).unwrap();
+        
+        socketService.emitMessage({
+          conversationId: conversation._id,
+          sender: currentUser._id,
+          recipients,
+          message: newMsg
+        });
 
-      const newMsg = await dispatch(sendMsgAction(msgData)).unwrap();
-      socketService.emitMessage({
-        conversationId: conversation._id,
-        sender: currentUser._id,
-        recipients,
-        message: newMsg
-      });
-    } catch (error) {
-      console.error('File upload failed', error);
+        // Only use caption for the first message in the batch
+        caption = ''; 
+      } catch (error) {
+        console.error('Media upload failed', error);
+      }
     }
   };
 
   const handleVoiceStop = async (blob: Blob, duration: number) => {
-    const file = new File([blob], 'voice_message.webm', { type: 'audio/webm' });
+    const file = new File([blob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('media', file);
     formData.append('conversationId', conversation._id);
 
     try {
-      const res = await api.post('/conversations/upload', formData);
+      const res = await api.post('/conversations/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
       const msgData = {
         conversationId: conversation._id,
         text: '',
         mediaUrl: res.data.mediaUrl,
-        mediaType: 'audio',
+        mediaType: 'voice',
         mediaMetadata: { ...res.data.mediaMetadata, duration }
       };
 
@@ -205,6 +227,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
     <div className="chat-window">
       <div className="chat-header">
         <div className="chat-header-left">
+          <button className="back-btn" onClick={onBack} title="Back to chats">
+            <FiArrowLeft size={20} />
+          </button>
           <div className="chat-header-avatar">
             {conversation.isGroup ? (
               <div className="group-avatar-stack">
@@ -293,30 +318,49 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
             </div>
           ) : (
             <form className="chat-input-area" onSubmit={handleSend}>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                style={{ display: 'none' }} 
-                onChange={handleFileUpload}
-              />
               <div className="input-actions">
-                <button type="button" className="icon-btn" onClick={() => setIsRecording(true)}>
+                <div className="attachment-btn-wrapper">
+                  <button 
+                    type="button" 
+                    className={`icon-btn ${showAttachmentMenu ? 'active' : ''}`} 
+                    onClick={() => setShowAttachmentMenu(!showAttachmentMenu)} 
+                    title="Attach file"
+                    ref={attachmentBtnRef}
+                  >
+                    <FiPaperclip size={20} />
+                  </button>
+                  <AnimatePresence>
+                    {showAttachmentMenu && (
+                      <AttachmentMenu 
+                        onSelectFiles={handleFileSelect}
+                        onVoiceRecord={() => { setIsRecording(true); setShowAttachmentMenu(false); }}
+                        onClose={() => setShowAttachmentMenu(false)}
+                      />
+                    )}
+                  </AnimatePresence>
+                </div>
+                
+                <button type="button" className="icon-btn" onClick={() => setIsRecording(true)} title="Voice message">
                   <FiMic size={20} />
                 </button>
-                <button type="button" className="icon-btn"><FiSmile size={20} /></button>
-                <button type="button" className="icon-btn" onClick={() => fileInputRef.current?.click()}>
-                  <FiImage size={20} />
-                </button>
-                <button type="button" className="icon-btn" onClick={() => fileInputRef.current?.click()}>
-                  <FiPaperclip size={20} />
+                <button type="button" className="icon-btn" title="Emoji picker">
+                  <FiSmile size={20} />
                 </button>
               </div>
-              <input 
-                type="text" 
-                placeholder="Aa" 
-                value={inputText}
-                onChange={handleTyping}
-              />
+              <div className="chat-input-wrapper">
+                <textarea 
+                  placeholder="Type a message..." 
+                  value={inputText}
+                  onChange={handleTyping}
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend(e as any);
+                    }
+                  }}
+                />
+              </div>
               <button type="submit" className="send-btn" disabled={!inputText.trim()}>
                 <FiSend size={20} />
               </button>
@@ -343,6 +387,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser }) =>
           url={viewerMedia.url} 
           type={viewerMedia.type} 
           onClose={() => setViewerMedia(null)} 
+        />
+      )}
+      {selectedFiles.length > 0 && (
+        <MediaPreviewModal 
+          files={selectedFiles}
+          onSend={handleSendMedia}
+          onCancel={() => setSelectedFiles([])}
         />
       )}
     </div>
