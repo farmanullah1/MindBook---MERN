@@ -152,7 +152,8 @@ const updatePost = async (req, res) => {
 
     const updatedPost = await Post.findById(post._id)
       .populate('user', 'name profilePicture')
-      .populate('comments.user', 'name profilePicture');
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
 
     res.json(updatedPost);
   } catch (error) {
@@ -213,7 +214,8 @@ const likePost = async (req, res) => {
 
     const updatedPost = await Post.findById(post._id)
       .populate('user', 'name profilePicture')
-      .populate('comments.user', 'name profilePicture');
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
 
     res.json(updatedPost);
   } catch (error) {
@@ -249,7 +251,8 @@ const commentOnPost = async (req, res) => {
 
     const updatedPost = await Post.findById(post._id)
       .populate('user', 'name profilePicture')
-      .populate('comments.user', 'name profilePicture');
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
 
     res.json(updatedPost);
   } catch (error) {
@@ -281,7 +284,8 @@ const deleteComment = async (req, res) => {
 
     const updatedPost = await Post.findById(post._id)
       .populate('user', 'name profilePicture')
-      .populate('comments.user', 'name profilePicture');
+      .populate('comments.user', 'name profilePicture')
+      .populate('comments.replies.user', 'name profilePicture');
 
     res.json(updatedPost);
   } catch (error) {
@@ -296,7 +300,8 @@ const getSavedPosts = async (req, res) => {
       path: 'savedPosts',
       populate: [
         { path: 'user', select: 'name profilePicture' },
-        { path: 'comments.user', select: 'name profilePicture' }
+        { path: 'comments.user', select: 'name profilePicture' },
+        { path: 'comments.replies.user', select: 'name profilePicture' }
       ]
     });
     

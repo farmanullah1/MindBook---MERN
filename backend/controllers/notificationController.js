@@ -53,16 +53,23 @@ const markAllAsRead = async (req, res) => {
 };
 
 // Helper function to create notifications internally
-const createNotification = async (userId, fromUserId, type, postId = null, text = '') => {
+const createNotification = async (io, userId, fromUserId, type, postId = null, text = '') => {
   if (userId.toString() === fromUserId.toString()) return; // Don't notify self
   try {
-    await Notification.create({
+    const notification = await Notification.create({
       user: userId,
       fromUser: fromUserId,
       type,
       post: postId,
       text
     });
+
+    // Populate fromUser for the frontend
+    const populatedNotif = await notification.populate('fromUser', 'name profilePicture');
+
+    if (io) {
+      io.to(userId.toString()).emit('notification-received', populatedNotif);
+    }
   } catch (error) {
     console.error('CreateNotification internal error:', error);
   }

@@ -7,7 +7,7 @@
  * agent: gemini-3-1-pro | google | 2026-04-30 | init | Initialized CodeDNA semi mode
  */
 
-import { FiFile, FiCornerUpLeft, FiShare2, FiCheck, FiMoreHorizontal, FiTrash2 } from 'react-icons/fi';
+import { FiFile, FiCornerUpLeft, FiShare2, FiCheck, FiMoreHorizontal, FiTrash2, FiDownload } from 'react-icons/fi';
 import { useState } from 'react';
 import { IMessage } from '../../types';
 import { getInitials } from '../../utils/helpers';
@@ -42,7 +42,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       case 'image':
         return <img src={message.mediaUrl} alt="Sent media" className="message-media image" onClick={() => onMediaClick?.(message.mediaUrl!, 'image')} />;
       case 'video':
-        return <video src={message.mediaUrl} className="message-media video" onClick={() => onMediaClick?.(message.mediaUrl!, 'video')} />;
+        return (
+          <div className="message-media video-container" onClick={() => onMediaClick?.(message.mediaUrl!, 'video')}>
+            <video 
+              src={message.mediaUrl} 
+              className="message-media video" 
+              poster={message.thumbnailUrl}
+            />
+            <div className="video-overlay-play" />
+          </div>
+        );
       case 'voice':
       case 'audio':
         return (
@@ -130,6 +139,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <button onClick={() => { onDelete(); setShowMenu(false); }}>
                   <FiTrash2 size={14} /> Remove for you
                 </button>
+                {message.mediaUrl && (
+                  <a 
+                    href={message.mediaUrl} 
+                    download={message.mediaMetadata?.fileName || 'download'} 
+                    className="menu-item-link"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    <FiDownload size={14} /> Download
+                  </a>
+                )}
                 {isMe && onDeleteEveryone && !message.isDeleted && (
                   <button className="danger" onClick={() => { onDeleteEveryone(); setShowMenu(false); }}>
                     <FiTrash2 size={14} /> Unsend for everyone

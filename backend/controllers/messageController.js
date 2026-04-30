@@ -9,6 +9,26 @@
 
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
+const ffmpeg = require('fluent-ffmpeg');
+const path = require('path');
+const fs = require('fs');
+
+const generateVideoThumbnail = (inputPath, outputPath) => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(inputPath)
+      .screenshots({
+        timestamps: ['00:00:01'],
+        filename: path.basename(outputPath),
+        folder: path.dirname(outputPath),
+        size: '320x?'
+      })
+      .on('end', () => resolve(outputPath))
+      .on('error', (err) => {
+        console.error('FFmpeg error:', err);
+        reject(err);
+      });
+  });
+};
 
 const sendMessage = async (req, res) => {
   try {
@@ -91,6 +111,18 @@ const uploadMessageMedia = async (req, res) => {
     const mediaUrl = `/uploads/messages/${req.file.filename}`;
     const mediaType = getMediaType(req.file.mimetype);
     
+    let thumbnailUrl = '';
+    if (mediaType === 'video') {
+      const thumbnailName = `thumb-${path.parse(req.file.filename).name}.jpg`;
+      const thumbnailPath = path.join('uploads/messages', thumbnailName);
+      try {
+        await generateVideoThumbnail(req.file.path, thumbnailPath);
+        thumbnailUrl = `/uploads/messages/${thumbnailName}`;
+      } catch (err) {
+        console.error('Thumbnail generation failed:', err);
+      }
+    }
+
     const mediaMetadata = {
       fileName: req.file.originalname,
       fileSize: req.file.size,
@@ -101,7 +133,8 @@ const uploadMessageMedia = async (req, res) => {
       success: true,
       mediaUrl, 
       mediaType,
-      mediaMetadata 
+      mediaMetadata,
+      thumbnailUrl
     });
   } catch (error) {
     console.error('UploadMessageMedia error:', error);

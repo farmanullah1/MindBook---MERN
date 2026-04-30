@@ -342,6 +342,28 @@
   justify-content: center;
 }
 
+/* Replies Styling */
+.replies-container {
+  border-left: 2px solid var(--border-color);
+  padding-left: 12px;
+  margin-left: 16px;
+}
+
+.comment.reply {
+  margin-bottom: 8px;
+}
+
+.comment.reply .comment-bubble {
+  background: var(--bg-body);
+  border: 1px solid var(--border-color);
+}
+
+.reply-form {
+  margin-left: 16px;
+  border-left: 2px solid var(--border-color);
+  padding-left: 12px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .post.card {

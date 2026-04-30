@@ -25,7 +25,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
   const timerRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -39,15 +39,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        // We'll pass the duration when the user clicks send
-        // Since this is a simple implementation, we'll store the duration in a ref or state
-      };
-
       mediaRecorder.start();
       setIsRecording(true);
       
+      if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -55,7 +50,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
       console.error('Error accessing microphone:', err);
       onCancel();
     }
-  };
+  }, [onCancel]);
 
   const stopAndSend = () => {
     if (mediaRecorderRef.current && isRecording) {
@@ -70,9 +65,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
   };
 
   const cleanup = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
     setIsRecording(false);
   }, []);
@@ -86,7 +85,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ onStop, onCancel }) => {
   useEffect(() => {
     startRecording();
     return () => cleanup();
-  }, [cleanup]);
+  }, [startRecording, cleanup]);
 
   return (
     <motion.div 
