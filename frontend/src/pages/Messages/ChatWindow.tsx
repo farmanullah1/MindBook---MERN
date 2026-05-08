@@ -378,7 +378,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, currentUser, onBa
                       <Picker 
                         onEmojiClick={onEmojiClick}
                         autoFocusSearch={false}
-                        theme={document.body.classList.contains('dark-mode') ? 'dark' : 'light'}
+                        theme={document.body.classList.contains('dark') ? 'dark' : 'light'}
                       />
                     </div>
                   )}

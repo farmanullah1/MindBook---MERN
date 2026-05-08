@@ -46,6 +46,31 @@ const Settings: React.FC = () => {
   const [showNewPw, setShowNewPw] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
 
+  // Privacy & Notification handlers
+  const handleTogglePrivacy = async (key: string, value: string) => {
+    try {
+      await api.put('/users/settings/privacy', {
+        privacySettings: { ...user?.privacySettings, [key]: value }
+      });
+      await dispatch(fetchCurrentUser());
+      showToast('Privacy settings updated', 'success');
+    } catch (err) {
+      showToast('Failed to update privacy settings', 'error');
+    }
+  };
+
+  const handleToggleNotification = async (key: string, value: boolean) => {
+    try {
+      await api.put('/users/settings/notifications', {
+        notificationPreferences: { ...(user?.notificationPreferences as any), [key]: value }
+      });
+      await dispatch(fetchCurrentUser());
+      showToast('Notification preferences updated', 'success');
+    } catch (err) {
+      showToast('Failed to update notification preferences', 'error');
+    }
+  };
+
   // Delete account
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -87,7 +112,7 @@ const Settings: React.FC = () => {
     }
     setPasswordSaving(true);
     try {
-      await api.put('/api/auth/password', { currentPassword, newPassword });
+      await api.post('/auth/change-password', { currentPassword, newPassword });
       showToast('Password changed successfully', 'success');
       setCurrentPassword('');
       setNewPassword('');

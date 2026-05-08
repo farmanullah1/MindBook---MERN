@@ -27,6 +27,8 @@ const Register: React.FC = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [gender, setGender] = useState('');
+  const [birthdate, setBirthdate] = useState('');
   const [localError, setLocalError] = useState('');
   const [success, setSuccess] = useState(false);
 
@@ -64,6 +66,8 @@ const Register: React.FC = () => {
       name: `${firstName.trim()} ${lastName.trim()}`,
       email: email.trim(),
       password,
+      ...(gender && { gender }),
+      ...(birthdate && { birthdate }),
     }));
 
     if (registerUser.fulfilled.match(result)) {
@@ -102,7 +106,7 @@ const Register: React.FC = () => {
         <div className="auth-card-glass">
           {success ? (
             <div className="auth-success" style={{ textAlign: 'center', padding: '40px 0' }}>
-              <FiCheckCircle size={64} color="var(--success-color)" style={{ marginBottom: '20px' }} />
+              <FiCheckCircle size={64} color="var(--success)" style={{ marginBottom: '20px' }} />
               <h2>Welcome Aboard!</h2>
               <p>Your account has been created successfully.</p>
               <p style={{ marginTop: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>Redirecting to login...</p>
@@ -180,6 +184,32 @@ const Register: React.FC = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
+                </div>
+
+                <div className="input-row">
+                  <div className="input-group">
+                    <select
+                      className="input-field-modern"
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                    >
+                      <option value="">Gender (optional)</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                      <option value="prefer-not-to-say">Prefer not to say</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <input
+                      type="date"
+                      className="input-field-modern"
+                      placeholder="Date of birth"
+                      value={birthdate}
+                      onChange={(e) => setBirthdate(e.target.value)}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
                 </div>
 
                 <div className="auth-legal-modern">

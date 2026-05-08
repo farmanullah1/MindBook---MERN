@@ -19,7 +19,8 @@ import {
   FiEdit2, 
   FiTrash2, 
   FiMapPin,
-  FiSend
+  FiSend,
+  FiPlay
 } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
@@ -315,7 +316,7 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
         <div className="post-video" onClick={() => setViewerData({ url: post.video!, type: 'video' })}>
           <video src={post.video} />
           <div className="video-play-overlay">
-            <FiThumbsUp size={48} color="white" /> {/* Placeholder for play icon, using react-icons */}
+            <FiPlay size={48} color="white" />
           </div>
         </div>
       )}
@@ -591,25 +592,61 @@ const Post: React.FC<PostProps> = ({ post, onPin, onUnpin, canManage }) => {
               exit={{ opacity: 0, y: 20 }}
             >
               <div className="modal-header">
-                <h3>Share Post</h3>
-                <button className="close-btn" onClick={() => setShowShareModal(false)}>&times;</button>
+                <h2>Share Post</h2>
+                <button className="modal-close" onClick={() => setShowShareModal(false)}>&times;</button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body" style={{ padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  {user?.profilePicture ? (
+                    <img src={user.profilePicture} alt={user.name} className="avatar avatar-sm" />
+                  ) : (
+                    <div className="avatar avatar-sm">{user ? getInitials(user.name) : '?'}</div>
+                  )}
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{user?.name}</span>
+                </div>
+                
                 <textarea
                   className="input-field"
                   placeholder="Say something about this..."
                   value={shareText}
                   onChange={(e) => setShareText(e.target.value)}
-                  style={{ minHeight: '80px', marginBottom: '16px' }}
+                  style={{ 
+                    minHeight: '80px', 
+                    marginBottom: '16px', 
+                    border: 'none', 
+                    background: 'transparent',
+                    fontSize: '1rem',
+                    padding: 0
+                  }}
                 />
-                <div className="shared-post-preview" style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', opacity: 0.8 }}>
-                  <strong>{post.user?.name || 'User'}</strong>
-                  <p style={{ fontSize: '0.9rem', marginTop: '4px' }}>
+                
+                <div className="shared-post-preview" style={{ 
+                  padding: '12px', 
+                  border: '1px solid var(--border-color)', 
+                  borderRadius: 'var(--radius-md)', 
+                  background: 'var(--bg-input)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    {post.user?.profilePicture ? (
+                      <img src={post.user.profilePicture} alt={post.user.name} className="avatar" style={{ width: '24px', height: '24px' }} />
+                    ) : (
+                      <div className="avatar" style={{ width: '24px', height: '24px', fontSize: '10px' }}>{post.user ? getInitials(post.user.name) : '?'}</div>
+                    )}
+                    <strong style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>{post.user?.name || 'User'}</strong>
+                  </div>
+                  
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                     {post.content ? (post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '')) : (post.image ? 'Image Post' : (post.video ? 'Video Post' : 'Post'))}
                   </p>
+                  
+                  {post.image && (
+                    <div style={{ marginTop: '8px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', maxHeight: '150px' }}>
+                      <img src={post.image} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="modal-footer" style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <div className="modal-footer" style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--border-color)' }}>
                 <button className="btn btn-secondary" onClick={() => setShowShareModal(false)}>Cancel</button>
                 <button className="btn btn-primary" onClick={handleShare} disabled={isSharing}>
                   {isSharing ? 'Sharing...' : 'Share Now'}
