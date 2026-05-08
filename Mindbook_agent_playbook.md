@@ -970,3 +970,485 @@ Test: send image (thumbnail + lightbox), send video (inline player), send docume
 ---
 
 *Last updated: 2026 | Application: MindBook | Stack: MongoDB, Express.js, React (Vite), Node.js | Brand: Yellow `#F7B928`*
+
+
+ADVANCED-FEATURES in MD File 
+
+
+# MindBook Advanced Features & Admin System Expansion
+
+## Overview
+This document outlines additional cutting-edge features that transform MindBook from a standard Facebook clone into an AI-powered, next-generation social platform with comprehensive administrative controls, advanced moderation tools, and innovative social features that Facebook currently lacks.
+
+---
+
+## SECTION A: ADMINISTRATIVE DASHBOARD & CONTROL SYSTEM
+
+### A.1 Super Admin Dashboard (`/admin`)
+
+**Access Control:** Only users with `role: "admin"` in User model can access. Initial admin seeded via environment variable `ADMIN_EMAIL`.
+
+**Dashboard Metrics Display:**
+- Total Users (with growth chart - last 30 days)
+- Active Users Today (logged in within 24h)
+- Total Posts (daily average)
+- Total Groups (public vs private)
+- Active Reports (pending/urgent)
+- Storage Usage (total uploads in MB/GB)
+- Server Health (API response time, DB connection status)
+
+**Quick Actions Bar:**
+- Announcement Creator (push notification to all users)
+- System Maintenance Mode Toggle
+- Clear Cache Button
+- Export Data (users/posts/reports as CSV/JSON)
+
+### A.2 User Management Panel
+
+**User List View:**
+- Search/filter by name, email, role, status (active/suspended/banned)
+- Bulk actions: Suspend, Unsuspend, Delete, Send Message
+- Sort by join date, last active, post count, report count
+
+**User Detail Modal:**
+- View all user data (profile, posts, comments, messages)
+- Activity timeline (login/IP log, posts created, reports filed)
+- Action buttons: 
+  - *Suspend User* (temporary with duration selection: 1 day, 7 days, 30 days, permanent)
+  - *Reset Password* (generates temporary password, sends email)
+  - *Impersonate User* (login as user for debugging)
+  - *Delete All User Data* (with confirmation)
+  - *Warn User* (sends system warning notification)
+
+### A.3 Content Moderation Queue
+
+**Reported Content Dashboard:**
+
+| Report Type | Source | Actions |
+|-------------|--------|---------|
+| Post Reports | Posts, Comments | Review, Dismiss, Delete, Warn User |
+| User Reports | Profiles | Review, Dismiss, Suspend, Ban |
+| Group Reports | Groups, Group Posts | Review, Delete Group, Remove Member |
+| Message Reports | Private Chats | Review, Warn, Restrict Messaging |
+
+**Moderation Workflow:**
+1. Report submitted with reason (Spam, Harassment, Hate Speech, Nudity, Violence, Misinformation)
+2. Report enters PENDING queue with priority flag
+3. Admin can view content context, user history, previous reports
+4. Decision options:
+   - **Dismiss** (report is false, content stays)
+   - **Warning** (user receives notification, content hidden pending review)
+   - **Delete** (content removed, user notified)
+   - **Delete + Suspend** (content removed, user suspended)
+5. All decisions logged with admin ID and timestamp
+
+**Auto-Moderation Rules (AI-Powered):**
+- Content contains profanity → Auto-flag for review
+- Same user reported 3+ times → Priority queue
+- New account (<24h old) making 10+ posts → Temporary restriction
+- URL shorteners in posts → Flag as potential spam
+
+### A.4 Reports Section (For All Users)
+
+**Report Categories Available to Users:**
+- **Post Report:** Spam, Nudity, Violence, Harassment, Hate Speech, Misinformation, Self-harm, Copyright
+- **User Report:** Fake account, Harassment, Impersonation, Underage user
+- **Comment Report:** Same as post report
+- **Message Report:** Spam, Harassment, Threats
+- **Group Report:** Spam group, Harassment group, Misinformation group
+
+**Reporting Flow:**
+1. User clicks ••• menu on any content → "Report"
+2. Modal opens with category selection
+3. Optional text field for additional details
+4. Submit → Toast confirmation "Report submitted. Thank you for helping keep MindBook safe."
+5. User cannot report same content twice
+
+**User's Report History (`/my-reports`):**
+- List of all reports user has submitted
+- Status indicators: Pending, Reviewed, Action Taken, Dismissed
+- Appeal button for dismissed reports (max 1 appeal per report)
+- Notification when report status changes
+
+### A.5 Admin Notification Center
+
+**System-Wide Announcements:**
+- Create announcement with title, message, optional link
+- Target options: All Users, New Users (<30 days), Inactive Users (>30 days), Specific Users
+- Schedule: Send now or schedule for future date/time
+- Analytics: Open rate, click-through rate
+
+**Alert System:**
+- Real-time alerts for: New high-priority reports, System errors, Storage limits reached
+- Browser notifications for admins
+- Alert history log
+
+---
+
+## SECTION B: AI-POWERED FEATURES (Antigravity Agents Integration)
+
+### B.1 Smart Content Assistant
+
+**Post Writing Assistant:**
+- AI suggests post completions as user types (toggle on/off)
+- Grammar and spelling correction
+- Tone adjustment (Professional, Friendly, Humorous, Serious)
+- Hashtag suggestions based on content
+- Click "Enhance with AI" to rewrite post
+
+**Implementation:** API call to `/api/ai/enhance-post` using Gemini API or local LLM
+
+**Comment Smart Replies:**
+- For post owners: AI generates suggested replies to comments
+- Options: Thank you, Answer question, Acknowledge feedback
+- One-click insert into comment input
+
+### B.2 Content Safety Scanner (Proactive)
+
+**Automatic Content Analysis:**
+Every post, comment, and image upload is scanned:
+- **Text Analysis:** Toxicity detection, threat detection, personal info detection (emails, phone numbers)
+- **Image Analysis:** NSFW detection, violence detection, text-in-image extraction
+- **URL Analysis:** Check against known phishing/malware databases
+
+**Action on Detection:**
+- High confidence violation → Auto-block, notify user, flag for admin
+- Medium confidence → Flag for review, soft-block (user sees warning, can override)
+- Personal info detected → Warning with "Remove PII" suggestion
+
+### B.3 Smart Friend Recommendations
+
+**AI-Powered Algorithm:**
+Factors considered:
+- Mutual friends count (weight: 30%)
+- Interests overlap (based on group memberships, liked pages) (25%)
+- Location proximity (city/region) (15%)
+- Work/education connections (15%)
+- Interaction pattern (liking same posts) (10%)
+- Active status (5%)
+
+**Endpoint:** `GET /api/ai/friend-recommendations` returns ranked suggestions with reasoning badge ("Because you both like React programming")
+
+**Daily Refresh:** Recommendations update every 24 hours based on new activity
+
+### B.4 Anti-Addiction & Wellness Features
+
+**Time Management Dashboard (`/your-time`):**
+- Daily/weekly/monthly time spent on MindBook
+- Breakdown by activity: Scrolling feed, Messaging, Groups, Stories
+- Set daily limit (30 min, 1 hr, 2 hr, Custom)
+- Break reminders: "You've been scrolling for 45 minutes. Take a break?"
+- "Focus Mode": Temporarily mute non-essential notifications (keeps only DMs from close friends)
+
+**Bedtime Mode:**
+- Set schedule (e.g., 10 PM - 7 AM)
+- During bedtime: Darker theme, reduced animations, mute notifications
+- Post drafting allowed but publishing delayed until morning
+
+**Mindful Feed:**
+- After 30 minutes of continuous scrolling, feed pauses with wellness message: "Take a moment. Here's a mindful breathing exercise..."
+- Option to dismiss or take a 60-second guided breathing animation
+
+### B.5 AI Moderation Assistant (For Admins)
+
+**Report Triage AI:**
+- Analyzes new reports and auto-assigns priority (High/Medium/Low)
+- Groups similar reports (same post reported by multiple users)
+- Suggests actions based on previous similar cases
+- Auto-resolution for clear false positives
+
+**Sentiment Analysis Dashboard:**
+- Overall platform sentiment trend (positive/neutral/negative)
+- Trending negative topics (word cloud)
+- User satisfaction prediction based on activity patterns
+
+---
+
+## SECTION C: INNOVATIVE SOCIAL FEATURES (Not on Facebook)
+
+### C.1 Collaborative Posts (Group Authoring)
+
+**Feature Description:** Multiple users can co-author a single post, appearing on all collaborators' profiles.
+
+**Implementation:**
+- Create post → "Add Collaborator" button → Search friends → Select
+- Collaborators receive notification + must accept invitation
+- Post shows as "Shared by [User1], [User2], [User3]"
+- Any collaborator can edit post (within 1 hour)
+- Comments appear in all collaborators' notifications
+- Collaborators can remove themselves
+
+**Use Cases:** Birthday wishes from multiple friends, Group project announcements, Collaborative art showcase
+
+### C.2 Time Capsule Posts
+
+**Feature Description:** Posts scheduled to be revealed on a future date to either the public or specific friends.
+
+**Implementation:**
+- Create post → "Time Capsule" toggle
+- Set unlock date (future: 1 month to 10 years)
+- Set audience (Public, Friends Only, Specific Friends)
+- Capsule posts are hidden from feed until unlock date
+- On unlock date: Notification sent to audience, post appears in feed with "🌱 Time Capsule Unlocked" badge
+- Creator can delete capsule before unlock date
+
+**Special UI:** Capsule icon on post, countdown timer in draft section
+
+### C.3 Reaction Stories (Reactions with Context)
+
+**Extended Reaction System:**
+Beyond Like/Love/Haha/Wow/Sad/Angry:
+
+**Contextual Reactions:**
+- **"Same!"** - Express agreement (counts as engagement)
+- **"Proud of you"** - Achievement/appreciation
+- **"Thinking about this"** - Deep/discussion-worthy
+- **"Bookmark"** - Save post to read later (private, no notification)
+
+**Reaction Feed:**
+- Separate tab showing how friends reacted to posts you shared
+- "Friends agreed with your post: 12 people said 'Same!'"
+
+**Implementation:** Add `reaction_metadata` to Post model storing reaction type and optional comment
+
+### C.4 Anonymous Confessions / Question Box
+
+**Feature Description:** Users can create an anonymous question box on their profile where friends can ask questions or submit confessions without revealing identity.
+
+**Setup:**
+- Profile → "Enable Question Box" (toggle)
+- Settings: Allow anonymous questions, Moderate before posting, Auto-post, Weekly digest
+
+**User Experience:**
+- On profile: "Ask [Name] anonymously" button
+- Submit question (max 300 chars)
+- Creator receives in "Anonymous Questions" inbox
+- Options: Post answer publicly, Reply privately, Delete, Block user
+
+**Safety:** All anonymous messages logged with actual user ID for admin (enforces anti-harassment)
+
+### C.5 Knowledge Sharing Hub (Mini-Blog/Article Platform)
+
+**Feature Description:** Long-form content creation for users to write articles, tutorials, or thought pieces.
+
+**Article Features:**
+- Rich text editor (formatting, headings, lists, code blocks)
+- Cover image, tags, reading time estimate
+- Series support (multiple articles in a collection)
+- Citation/link preview auto-embed
+- Comment section with threaded discussions
+
+**Discovery:**
+- `/articles` page with Trending, Latest, Following tabs
+- Algorithm considers: Read time, Engagement (comments/bookmarks), Shares
+- Article cards show: Title, Excerpt, Read time, Author, Comment count
+
+**Integration:** Articles appear in main feed as "User published: Article Title"
+
+### C.6 Micro-Communities (Interest-Based Channels)
+
+**Feature Description:** Lightweight, topic-based channels within groups (slack/discord style).
+
+**Structure:**
+- Any group can create Channels (#general, #announcements, #random, #resources)
+- Channels have topic, optional pinned messages
+- Posts within channels vs. group feed (users can browse by channel)
+- Channel roles: Follow/Unfollow, Mute notifications
+
+**UI:**
+- Channel sidebar in group page
+- New post has channel selector dropdown
+- Channel-specific notifications toggle
+
+### C.7 Live Collaborative Playlists
+
+**Feature Description:** Friends can create shared music playlists (Spotify/YouTube Music integration).
+
+**Setup:**
+- "Create Collaborative Playlist" from Friends section or Group
+- Name playlist, add description, choose collaborators
+- Anyone can add songs (via search API)
+- Playlist displays in profile ("[User]'s Playlists" section)
+- Real-time updates when songs added/removed
+
+**Requirements:** OAuth integration for Spotify/YouTube API (optional, fallback to manual song entry)
+
+### C.8 Memory Remix (AI Video Compilation)
+
+**Feature Description:** AI automatically creates highlight reels from a user's posts with friends over time.
+
+**Trigger:** User clicks "Create Memory Remix" from profile
+- Select time range (last month, year, all time)
+- Select friends to include (or all)
+- AI selects top engaged posts, photos, reactions
+- Generates 30-60 second video with transitions and background music
+- Preview before posting to feed or story
+
+**Technical:** Uses FFmpeg for video generation on backend, cached for 24 hours
+
+---
+
+## SECTION D: WALLET & DIGITAL ECONOMY
+
+### D.1 MindBook Coins (Virtual Currency)
+
+**Earning Coins:**
+- Daily login: 5 coins
+- Posting (max 3/day): 2 coins each
+- Comment (max 10/day): 1 coin each
+- Receiving reactions: 1 coin per 10 reactions
+- Inviting new user (with signup): 50 coins
+- Achievements/Badges: 10-100 coins
+
+**Spending Coins:**
+- Boost post (appear in more feeds for 24h): 50 coins
+- Virtual gifts (send to friends): 10-200 coins
+- Custom stickers/emojis: 5 coins each
+- Unlock premium themes: 100 coins
+- Remove ads (if implemented): 200 coins/month
+
+**Transaction History (`/wallet`):**
+- Coin balance, transaction log (earn/spend with timestamps)
+- Gift coins to friends
+- Leaderboard: Top coin earners this week
+
+### D.2 Creator Monetization (Super Chats & Tips)
+
+**For Content Creators with 500+ followers:**
+- "Support this creator" button on profile and posts
+- Users can send tips (1, 5, 10, 20, 50 coins)
+- Public tip feed shows "[User] tipped [Creator] 10 coins on their recent post"
+- Creators can convert coins to rewards (gift cards, donation to charity)
+
+---
+
+## SECTION E: PORTFOLIO & PROFESSIONAL NETWORKING
+
+### E.1 Professional Portfolio Section
+
+**On User Profile - New Tab "Portfolio":**
+- **Work Samples:** Upload projects (images, links, GitHub repos)
+- **Skills:** List with endorsements from connections
+- **Certifications:** Upload certificates, set expiry dates
+- **Recommendations:** Written recommendations from colleagues/friends
+- **Resume/CV:** Upload PDF, viewable by recruiters only if enabled
+
+**Privacy Controls:** 
+- Visibility: Public, Connections Only, Recruiters Only (verified company emails)
+- "Open to Work" badge on profile
+
+### E.2 Job Board (`/jobs`)
+
+**For Employers (verified accounts):**
+- Post jobs with title, description, requirements, location, salary range
+- Application deadline, remote/hybrid/onsite
+- Promote job (costs 100 coins/day)
+
+**For Job Seekers:**
+- Browse jobs, filter by category, location, remote
+- Save jobs, apply with one-click (prefilled from Portfolio)
+- Job alerts (email/notifications for new matching jobs)
+- Application tracker (Applied, Viewed, Interview, Rejected, Hired)
+
+---
+
+## SECTION F: ADVANCED PRIVACY & SAFETY
+
+### F.1 Audience Selector (Granular Post Privacy)
+
+**Per-Post Privacy Options:**
+- Public (anyone)
+- Friends Only
+- Friends except [specific friends]
+- Specific friends only
+- Only Me
+- Custom Lists (create named lists: "Close Friends", "Work Colleagues", "Family")
+
+**Implementation:** Add `privacy` object to Post model with type and exceptions/allow lists
+
+**UI:** Privacy selector dropdown next to Post button with icons (🌍 👥 🔒)
+
+### F.2 Login Alerts & Device Management
+
+**Security Features:**
+- Email notification for new device login (location, browser, time)
+- `/security` page showing all active sessions with ability to revoke
+- Two-Factor Authentication (2FA) via authenticator app or SMS
+- Trusted devices (skip 2FA for 30 days)
+- Login history (last 50 logins with IP, location, device)
+
+**Alert Integration:** Suspicious login (different country within 1 hour) → challenge with security questions
+
+### F.3 Data Export & Account Takeout
+
+**GDPR-Compliant Export:**
+- `/download-your-data` page
+- Select data types: Posts, Comments, Messages, Friends list, Profile info, Login history
+- Request export → generates ZIP file (JSON + media files) within 24h
+- Download link expires in 7 days
+- Delete all exported data after download or 30 days
+
+---
+
+## SECTION G: TECHNICAL IMPROVEMENTS
+
+### G.1 PWA (Progressive Web App)
+
+**Manifest & Service Worker:**
+- Install MindBook as app on mobile (no app store needed)
+- Offline support: Cached feed for last 50 posts
+- Push notifications (even when browser closed)
+- Splash screen, custom icon
+
+**Implementation:** Generate manifest.json, register service worker with Workbox
+
+### G.2 Real-Time Typing in Comments
+
+**Feature:** Show "User is typing..." below comment section when someone is writing a reply
+
+**Implementation:** Socket.IO events: `comment-typing-start`, `comment-typing-stop`, broadcast to users viewing same post
+
+### G.3 Voice & Video Calls (WebRTC)
+
+**One-on-One & Group Calls (max 8 participants):**
+- In chat window: Phone icon (audio), Camera icon (video)
+- Request call → Ring notification → Accept/Decline
+- Mute, camera on/off, screen share (premium)
+- Call history in chat
+
+**Technical:** WebRTC with STUN/TURN servers (use free public STUN as MVP)
+
+---
+
+## SECTION H: LINKEDIN & PORTFOLIO INTEGRATION
+
+### H.1 LinkedIn Profile Connection
+
+**Feature:** Users can connect their LinkedIn profile to MindBook
+
+**Implementation:**
+- Settings → "Connect LinkedIn" → OAuth 2.0 flow
+- After connection:
+  - Import work experience (optional, with user permission)
+  - Import skills (optional)
+  - Badge on MindBook profile: "🔗 Verified LinkedIn"
+  - Option to share MindBook posts to LinkedIn
+  - "Find friends on LinkedIn" feature
+
+**API Endpoint:** `POST /api/integrations/linkedin/connect` (store LinkedIn ID, access token encrypted)
+
+### H.2 Portfolio Link Display
+
+**On User Profile:**
+- Dedicated section "Links" below bio
+- Fields: Portfolio Website, GitHub, Behance/Dribbble (designers), Medium/Substack (writers)
+- Each link has verification badge if domain matches user's email domain
+- Click icon to open in new tab
+
+**Profile Page Addition:**
+```jsx
+{portfolioLink && (
+  <div className="profile-link">
+    <GlobeIcon /> <a href={portfolioLink} target="_blank">Portfolio</a>
+  </div>
+)}

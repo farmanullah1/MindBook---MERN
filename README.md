@@ -59,7 +59,7 @@ Built on the **MERN stack**, MindBook provides a robust set of features for comm
 MindBook uses a "Gold Standard" design system. The primary palette revolves around:
 - **Brand Primary:** `#F7B928` (Vibrant Yellow)
 - **Brand Secondary:** `#FFD700`
-- **Surface:** Glassmorphism-inspired card layouts and subtle gradients.
+- **Surface:** Modern solid card layouts with subtle drop shadows and full dark-mode support.
 
 ---
 

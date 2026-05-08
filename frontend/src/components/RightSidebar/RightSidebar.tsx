@@ -21,6 +21,7 @@ const RightSidebar: React.FC = () => {
   const [suggestions, setSuggestions] = React.useState<IUser[]>([]);
   const [friendRequests, setFriendRequests] = React.useState<IUser[]>([]);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -33,6 +34,8 @@ const RightSidebar: React.FC = () => {
         setFriendRequests(meRes.data.friendRequests || []);
       } catch (error) {
         console.error('Failed to fetch sidebar data:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -75,7 +78,18 @@ const RightSidebar: React.FC = () => {
     <aside className="right-sidebar" id="right-sidebar">
       <div className="sidebar-scroll">
         {/* Friend Requests */}
-        {friendRequests.length > 0 && (
+        {loading ? (
+          <div className="rs-section">
+            <h3 className="rs-section-title">Friend Requests</h3>
+            {[1, 2].map(i => (
+              <div key={i} className="rs-request-item" style={{ alignItems: 'center' }}>
+                <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
+                <div className="skeleton" style={{ flex: 1, height: '14px', borderRadius: '4px', marginLeft: '8px' }} />
+              </div>
+            ))}
+            <div className="rs-divider" />
+          </div>
+        ) : friendRequests.length > 0 && (
           <div className="rs-section">
             <h3 className="rs-section-title">Friend Requests</h3>
             {friendRequests.map((req) => (
@@ -153,7 +167,21 @@ const RightSidebar: React.FC = () => {
         </div>
 
         {/* Suggested Friends */}
-        {suggestions.length > 0 && (
+        {loading ? (
+          <div className="rs-section">
+            <div className="rs-divider" />
+            <h3 className="rs-section-title">People you may know</h3>
+            <div className="rs-suggestions-list">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="rs-suggestion-item">
+                  <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '50%' }} />
+                  <div className="skeleton" style={{ flex: 1, height: '14px', borderRadius: '4px', marginLeft: '8px' }} />
+                  <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px', marginLeft: 'auto' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : suggestions.length > 0 && (
           <div className="rs-section">
             <div className="rs-divider" />
             <h3 className="rs-section-title">People you may know</h3>

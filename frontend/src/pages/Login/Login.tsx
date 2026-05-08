@@ -118,6 +118,10 @@ const Login: React.FC = () => {
               <a href="#forgot" className="forgot-password">Forgotten password?</a>
             </div>
 
+            <div className="demo-credentials" style={{ textAlign: 'center', margin: '12px 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
+              <p>Demo: demo@example.com / demo1234</p>
+            </div>
+
             <div className="auth-divider">or</div>
 
             <div className="auth-footer-links" style={{ marginTop: '0' }}>

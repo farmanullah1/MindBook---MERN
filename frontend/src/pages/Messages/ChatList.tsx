@@ -20,8 +20,18 @@ interface ChatListProps {
   loading: boolean;
 }
 
+import SkeletonChatList from '../../components/Skeletons/SkeletonChatList';
+
 const ChatList: React.FC<ChatListProps> = ({ conversations, activeId, currentUserId, onSelect, loading }) => {
-  if (loading) return <div className="chat-list-loading">Loading chats...</div>;
+  if (loading) {
+    return (
+      <div className="chat-list-wrapper">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <SkeletonChatList key={i} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="chat-list">

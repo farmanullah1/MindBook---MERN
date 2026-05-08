@@ -40,11 +40,17 @@ const GroupDiscover: React.FC = () => {
   const filteredGroups = groups.filter(group => {
     const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          group.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || group.category === activeCategory;
+    
+    let matchesCategory = true;
+    if (activeCategory === 'Public') matchesCategory = group.privacy === 'public';
+    if (activeCategory === 'Private') matchesCategory = group.privacy === 'private';
+    // For 'My Groups', we would ideally check if user is in group.members
+    // but assuming standard discover feed excludes joined groups, we can just show 'All'
+    
     return matchesSearch && matchesCategory;
   });
 
-  const categories = ['All', 'Science & Tech', 'Music', 'Gaming', 'Business', 'Health', 'Travel', 'Art'];
+  const categories = ['All', 'Public', 'Private'];
 
   return (
     <div className="groups-page-wrapper">

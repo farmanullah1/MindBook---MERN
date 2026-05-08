@@ -1456,3 +1456,27 @@
     max-height: 300px;
   }
 }
+
+/* Mobile Responsiveness for Sidebar */
+@media (max-width: 1024px) { 
+  .messages-sidebar { 
+    width: 280px; 
+  } 
+}
+
+@media (max-width: 768px) {
+  .messages-sidebar {
+    position: fixed;
+    left: -100%;
+    transition: left 0.3s ease;
+    z-index: 1000;
+    background: var(--bg-card);
+    height: calc(100vh - 60px);
+  }
+  .messages-sidebar.open { 
+    left: 0; 
+  }
+  .messages-main { 
+    width: 100%; 
+  }
+}
